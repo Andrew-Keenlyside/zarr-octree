@@ -149,6 +149,63 @@ Median ms, coarse / leaf / sharded / **octree**:
   is one manifest read more than sharding's.
 * Build (write through zarr + pack): octree 30 s, leaf 87 s, sharded 168 s.
 
+## Spatial and vertex-index queries
+
+`bench/bench_index.py` (figures: `bench/figures_index.py`) reads the same
+stores the way zarr-vectors addresses vertices — as (chunk, row) — and adds a
+transfer time to the injected latency (100 MB/s per request), so a large
+chunk costs more than a small one.
+
+* **random vertices**: `k` vertex ids, looked up in a dense address table
+  (65,536 rows per chunk), then their chunks fetched;
+* **whole objects**: one object's vertices via its manifest row (as
+  `object_index/manifests`) — `compact` (k nearest neighbours of a vertex),
+  `cluster` (k vertices of one Gaussian cluster), `curve` (k vertices of one
+  curved 1-D manifold);
+* **boxes**: the occupied-cell box queries above.
+
+Every fetched vertex is checked against the source points, and every box
+returns the same points in every layout.
+
+![index queries](bench/results/figures/index_queries.png)
+![octree ÷ others](bench/results/figures/index_ratio.png)
+
+Median ms, octree / sharded / leaf / coarse (8 queries each):
+
+| query | local disk | 20 ms + 100 MB/s | 80 ms + 100 MB/s |
+|---|---|---|---|
+| 1 random vertex | 16 / 5 / 16 / 13 | 66 / 72 / 66 / 92 | 188 / 257 / 188 / 214 |
+| 1,024 random vertices | 324 / 246 / 398 / 99 | 404 / 265 / 456 / 207 | 650 / 471 / 774 / 328 |
+| 16,384 random vertices | 2,095 / 1,966 / 2,762 / 155 | 2,101 / 2,026 / 2,572 / 245 | — |
+| compact object, 1,000 | 26 / 10 / 29 / 8 | 68 / 77 / 72 / 87 | 189 / 262 / 193 / 208 |
+| cluster object, 10,000 | 382 / 340 / 736 / 13 | 461 / 389 / 788 / 67 | 613 / 594 / 1,453 / 188 |
+| curve object, 10,000 | 330 / 293 / 606 / 24 | 385 / 341 / 701 / 68 | 543 / 539 / 1,197 / 190 |
+| dense box 8³ | 162 / 143 / 318 / 36 | 191 / 215 / 350 / 124 | 307 / 343 / 556 / 185 |
+| dense box 32³ | 1,661 / 1,541 / 2,426 / 30 | 1,682 / 1,486 / 2,231 / 82 | — |
+| uniform box 8³ | 28 / 21 / 46 / 3 | 56 / 62 / 69 / 26 | 117 / 183 / 160 / 87 |
+
+* **Octree against regular chunks of the same size (leaf)**: at most ~10 %
+  slower (tiny queries on local disk), and 1.2–2.4× faster on anything
+  touching many chunks — objects spread over a cluster or a curve, boxes
+  from 8³, 1,024+ random vertices — because it makes up to 40× fewer
+  requests (1,836 → 46 for a 10,000-vertex cluster object).
+* **Octree against sharding**: within ~25 % on large queries.  On small
+  ones it depends on latency: up to 3× slower on local disk (it reads and
+  decodes a whole node where sharding reads byte ranges: 16 vs 5 ms for one
+  vertex), ~30 % faster at 80 ms (one round trip against two: 188 vs 257 ms
+  for one vertex, 103 vs 171 ms for a sparse box).  Scattered random reads
+  favour sharding at every latency (570 node requests vs 204 coalesced
+  shard-range requests for 1,024 vertices; 650 vs 471 ms at 80 ms).
+* **Coarse regular chunks are still fastest** for everything except single
+  vertices, small random sets and compact objects with latency, where the
+  octree reads 0.2–0.5 MB against coarse's 2–4 MB and is level or ahead
+  (66 vs 92 ms for one vertex, 91 vs 162 ms for 32, at 20 ms).  Elsewhere the
+  gap is zarr's per-chunk work again: a 10,000-vertex cluster object is
+  1,836 chunks for zarr in the leaf-based layouts and 8 in the coarse one.
+  The octree has cut the *requests* to 46; to turn that into speed a reader
+  has to receive nodes, not leaf chunks (the node-level read in "Not done
+  yet").
+
 ## What this says about option 1
 
 * As a Zarr-only extension it does what #45 asked of the storage: object size
@@ -182,5 +239,7 @@ src/zarr_octree/instrument.py  counting / latency store for tests and benchmarks
 tests/                         pytest
 bench/make_points.py           densMAP point cloud
 bench/bench.py                 layouts, object sizes, sweep, queries
+bench/bench_index.py           spatial and vertex-index queries (after bench.py)
 bench/figures.py               figures -> bench/results/figures/
+bench/figures_index.py         figures for bench_index.py
 ```

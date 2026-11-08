@@ -149,10 +149,10 @@ def object_stats(pts: np.ndarray, disk: int) -> dict:
 class Reader:
     """One layout opened for queries, over a latency-injecting counting store."""
 
-    def __init__(self, layout: str, root: Path, latency: float, max_inflight: int | None):
+    def __init__(self, layout: str, root: Path, latency: float, max_inflight: int | None, bandwidth: float | None = None):
         self.layout = layout
         self.factor = COARSE if layout == "coarse" else 1
-        self.counter = CountingStore(LocalStore(str(root / layout), read_only=True), latency=latency, max_inflight=max_inflight)
+        self.counter = CountingStore(LocalStore(str(root / layout), read_only=True), latency=latency, max_inflight=max_inflight, bandwidth=bandwidth)
         self.store = OctreeStore(self.counter) if layout == "octree" else self.counter
         self.arr = zarr.open_array(self.store, path="pts", mode="r")
 

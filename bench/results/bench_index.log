@@ -1,0 +1,205 @@
+lat   0 ms  random                1  coarse  median     12.9 ms  cells       1  requests      1
+lat   0 ms  random                1  leaf    median     16.0 ms  cells       1  requests      1
+lat   0 ms  random                1  sharded median      5.2 ms  cells       1  requests      2
+lat   0 ms  random                1  octree  median     15.9 ms  cells       1  requests      1
+lat   0 ms  random               32  coarse  median     43.5 ms  cells      16  requests     16
+lat   0 ms  random               32  leaf    median     44.6 ms  cells      32  requests     32
+lat   0 ms  random               32  sharded median     35.0 ms  cells      32  requests     36
+lat   0 ms  random               32  octree  median     47.5 ms  cells      32  requests     32
+lat   0 ms  random             1024  coarse  median     99.4 ms  cells     102  requests    102
+lat   0 ms  random             1024  leaf    median    398.0 ms  cells     806  requests    806
+lat   0 ms  random             1024  sharded median    245.5 ms  cells     806  requests    204
+lat   0 ms  random             1024  octree  median    323.8 ms  cells     806  requests    570
+lat   0 ms  random            16384  coarse  median    154.7 ms  cells     168  requests    168
+lat   0 ms  random            16384  leaf    median   2762.3 ms  cells    6702  requests   6702
+lat   0 ms  random            16384  sharded median   1966.4 ms  cells    6702  requests    335
+lat   0 ms  random            16384  octree  median   2095.0 ms  cells    6702  requests   1302
+lat   0 ms  object compact     1000  coarse  median      7.7 ms  cells       1  requests      1
+lat   0 ms  object compact     1000  leaf    median     29.0 ms  cells      25  requests     25
+lat   0 ms  object compact     1000  sharded median      9.9 ms  cells      25  requests      2
+lat   0 ms  object compact     1000  octree  median     26.0 ms  cells      25  requests      4
+lat   0 ms  object cluster     1000  coarse  median      6.7 ms  cells       6  requests      6
+lat   0 ms  object cluster     1000  leaf    median    221.8 ms  cells     503  requests    503
+lat   0 ms  object cluster     1000  sharded median     87.9 ms  cells     503  requests     13
+lat   0 ms  object cluster     1000  octree  median    104.0 ms  cells     503  requests     34
+lat   0 ms  object curve       1000  coarse  median     10.2 ms  cells      20  requests     20
+lat   0 ms  object curve       1000  leaf    median    242.4 ms  cells     517  requests    517
+lat   0 ms  object curve       1000  sharded median    109.8 ms  cells     517  requests     39
+lat   0 ms  object curve       1000  octree  median    127.8 ms  cells     517  requests     47
+lat   0 ms  object compact    10000  coarse  median     15.1 ms  cells       1  requests      1
+lat   0 ms  object compact    10000  leaf    median     41.0 ms  cells      56  requests     56
+lat   0 ms  object compact    10000  sharded median     30.5 ms  cells      56  requests      2
+lat   0 ms  object compact    10000  octree  median     35.3 ms  cells      56  requests     12
+lat   0 ms  object cluster    10000  coarse  median     13.1 ms  cells       8  requests      8
+lat   0 ms  object cluster    10000  leaf    median    735.6 ms  cells    1836  requests   1836
+lat   0 ms  object cluster    10000  sharded median    339.9 ms  cells    1836  requests     16
+lat   0 ms  object cluster    10000  octree  median    382.2 ms  cells    1836  requests     46
+lat   0 ms  object curve      10000  coarse  median     23.6 ms  cells      20  requests     20
+lat   0 ms  object curve      10000  leaf    median    605.9 ms  cells    1484  requests   1484
+lat   0 ms  object curve      10000  sharded median    293.1 ms  cells    1484  requests     39
+lat   0 ms  object curve      10000  octree  median    329.9 ms  cells    1484  requests     54
+lat   0 ms  box dense             2  coarse  median      9.3 ms  cells       0  requests      1
+lat   0 ms  box dense             2  leaf    median     20.3 ms  cells       0  requests     27
+lat   0 ms  box dense             2  sharded median      9.3 ms  cells       0  requests      2
+lat   0 ms  box dense             2  octree  median     22.5 ms  cells       0  requests      8
+lat   0 ms  box uniform           2  coarse  median      0.8 ms  cells       0  requests      1
+lat   0 ms  box uniform           2  leaf    median      0.0 ms  cells       0  requests      0
+lat   0 ms  box uniform           2  sharded median      0.0 ms  cells       0  requests      0
+lat   0 ms  box uniform           2  octree  median      0.0 ms  cells       0  requests      0
+lat   0 ms  box dense             8  coarse  median     36.2 ms  cells       0  requests      4
+lat   0 ms  box dense             8  leaf    median    317.6 ms  cells       0  requests    671
+lat   0 ms  box dense             8  sharded median    143.3 ms  cells       0  requests      8
+lat   0 ms  box dense             8  octree  median    161.6 ms  cells       0  requests    124
+lat   0 ms  box uniform           8  coarse  median      2.0 ms  cells       0  requests      2
+lat   0 ms  box uniform           8  leaf    median     19.0 ms  cells       0  requests      4
+lat   0 ms  box uniform           8  sharded median      2.8 ms  cells       0  requests      2
+lat   0 ms  box uniform           8  octree  median     17.4 ms  cells       0  requests      1
+lat   0 ms  box dense            16  coarse  median     20.9 ms  cells       0  requests      8
+lat   0 ms  box dense            16  leaf    median    771.7 ms  cells       0  requests   1928
+lat   0 ms  box dense            16  sharded median    393.0 ms  cells       0  requests     16
+lat   0 ms  box dense            16  octree  median    505.8 ms  cells       0  requests    143
+lat   0 ms  box uniform          16  coarse  median      2.1 ms  cells       0  requests      4
+lat   0 ms  box uniform          16  leaf    median     29.3 ms  cells       0  requests     13
+lat   0 ms  box uniform          16  sharded median      5.1 ms  cells       0  requests      7
+lat   0 ms  box uniform          16  octree  median     20.2 ms  cells       0  requests      4
+lat   0 ms  box dense            32  coarse  median     29.5 ms  cells       0  requests     26
+lat   0 ms  box dense            32  leaf    median   2426.1 ms  cells       0  requests   6329
+lat   0 ms  box dense            32  sharded median   1540.6 ms  cells       0  requests     47
+lat   0 ms  box dense            32  octree  median   1660.8 ms  cells       0  requests    174
+lat   0 ms  box uniform          32  coarse  median      9.5 ms  cells       0  requests     14
+lat   0 ms  box uniform          32  leaf    median    501.2 ms  cells       0  requests   1422
+lat   0 ms  box uniform          32  sharded median    234.8 ms  cells       0  requests     25
+lat   0 ms  box uniform          32  octree  median    274.2 ms  cells       0  requests     23
+lat  20 ms  random                1  coarse  median     92.4 ms  cells       1  requests      1
+lat  20 ms  random                1  leaf    median     65.9 ms  cells       1  requests      1
+lat  20 ms  random                1  sharded median     72.1 ms  cells       1  requests      2
+lat  20 ms  random                1  octree  median     66.2 ms  cells       1  requests      1
+lat  20 ms  random               32  coarse  median    162.1 ms  cells      16  requests     16
+lat  20 ms  random               32  leaf    median     88.4 ms  cells      32  requests     32
+lat  20 ms  random               32  sharded median    113.6 ms  cells      32  requests     36
+lat  20 ms  random               32  octree  median     91.4 ms  cells      32  requests     32
+lat  20 ms  random             1024  coarse  median    206.6 ms  cells     102  requests    102
+lat  20 ms  random             1024  leaf    median    455.8 ms  cells     806  requests    806
+lat  20 ms  random             1024  sharded median    264.5 ms  cells     806  requests    204
+lat  20 ms  random             1024  octree  median    403.5 ms  cells     806  requests    570
+lat  20 ms  random            16384  coarse  median    244.8 ms  cells     168  requests    168
+lat  20 ms  random            16384  leaf    median   2571.5 ms  cells    6702  requests   6702
+lat  20 ms  random            16384  sharded median   2026.4 ms  cells    6702  requests    335
+lat  20 ms  random            16384  octree  median   2101.0 ms  cells    6702  requests   1302
+lat  20 ms  object compact     1000  coarse  median     86.7 ms  cells       1  requests      1
+lat  20 ms  object compact     1000  leaf    median     71.8 ms  cells      25  requests     25
+lat  20 ms  object compact     1000  sharded median     77.2 ms  cells      25  requests      2
+lat  20 ms  object compact     1000  octree  median     67.8 ms  cells      25  requests      4
+lat  20 ms  object cluster     1000  coarse  median     53.3 ms  cells       6  requests      6
+lat  20 ms  object cluster     1000  leaf    median    279.4 ms  cells     503  requests    503
+lat  20 ms  object cluster     1000  sharded median    160.9 ms  cells     503  requests     13
+lat  20 ms  object cluster     1000  octree  median    167.4 ms  cells     503  requests     34
+lat  20 ms  object curve       1000  coarse  median     54.7 ms  cells      20  requests     20
+lat  20 ms  object curve       1000  leaf    median    290.9 ms  cells     517  requests    517
+lat  20 ms  object curve       1000  sharded median    170.7 ms  cells     517  requests     39
+lat  20 ms  object curve       1000  octree  median    196.1 ms  cells     517  requests     47
+lat  20 ms  object compact    10000  coarse  median     83.0 ms  cells       1  requests      1
+lat  20 ms  object compact    10000  leaf    median     98.2 ms  cells      56  requests     56
+lat  20 ms  object compact    10000  sharded median    108.7 ms  cells      56  requests      2
+lat  20 ms  object compact    10000  octree  median     93.5 ms  cells      56  requests     12
+lat  20 ms  object cluster    10000  coarse  median     66.8 ms  cells       8  requests      8
+lat  20 ms  object cluster    10000  leaf    median    788.2 ms  cells    1836  requests   1836
+lat  20 ms  object cluster    10000  sharded median    389.2 ms  cells    1836  requests     16
+lat  20 ms  object cluster    10000  octree  median    460.9 ms  cells    1836  requests     46
+lat  20 ms  object curve      10000  coarse  median     67.7 ms  cells      20  requests     20
+lat  20 ms  object curve      10000  leaf    median    701.4 ms  cells    1484  requests   1484
+lat  20 ms  object curve      10000  sharded median    340.9 ms  cells    1484  requests     39
+lat  20 ms  object curve      10000  octree  median    384.9 ms  cells    1484  requests     54
+lat  20 ms  box dense             2  coarse  median     53.0 ms  cells       0  requests      1
+lat  20 ms  box dense             2  leaf    median     49.4 ms  cells       0  requests     27
+lat  20 ms  box dense             2  sharded median     57.3 ms  cells       0  requests      2
+lat  20 ms  box dense             2  octree  median     49.3 ms  cells       0  requests      8
+lat  20 ms  box uniform           2  coarse  median     21.1 ms  cells       0  requests      1
+lat  20 ms  box uniform           2  leaf    median      0.0 ms  cells       0  requests      0
+lat  20 ms  box uniform           2  sharded median      0.0 ms  cells       0  requests      0
+lat  20 ms  box uniform           2  octree  median      0.0 ms  cells       0  requests      0
+lat  20 ms  box dense             8  coarse  median    123.7 ms  cells       0  requests      4
+lat  20 ms  box dense             8  leaf    median    350.1 ms  cells       0  requests    671
+lat  20 ms  box dense             8  sharded median    214.8 ms  cells       0  requests      8
+lat  20 ms  box dense             8  octree  median    190.5 ms  cells       0  requests    124
+lat  20 ms  box uniform           8  coarse  median     22.8 ms  cells       0  requests      2
+lat  20 ms  box uniform           8  leaf    median     38.6 ms  cells       0  requests      4
+lat  20 ms  box uniform           8  sharded median     44.5 ms  cells       0  requests      2
+lat  20 ms  box uniform           8  octree  median     39.5 ms  cells       0  requests      1
+lat  20 ms  box dense            16  coarse  median     84.2 ms  cells       0  requests      8
+lat  20 ms  box dense            16  leaf    median    678.1 ms  cells       0  requests   1928
+lat  20 ms  box dense            16  sharded median    414.2 ms  cells       0  requests     16
+lat  20 ms  box dense            16  octree  median    506.5 ms  cells       0  requests    143
+lat  20 ms  box uniform          16  coarse  median     23.2 ms  cells       0  requests      4
+lat  20 ms  box uniform          16  leaf    median     42.6 ms  cells       0  requests     13
+lat  20 ms  box uniform          16  sharded median     47.9 ms  cells       0  requests      7
+lat  20 ms  box uniform          16  octree  median     39.7 ms  cells       0  requests      4
+lat  20 ms  box dense            32  coarse  median     82.3 ms  cells       0  requests     26
+lat  20 ms  box dense            32  leaf    median   2231.3 ms  cells       0  requests   6329
+lat  20 ms  box dense            32  sharded median   1485.6 ms  cells       0  requests     47
+lat  20 ms  box dense            32  octree  median   1681.9 ms  cells       0  requests    174
+lat  20 ms  box uniform          32  coarse  median     32.6 ms  cells       0  requests     14
+lat  20 ms  box uniform          32  leaf    median    494.0 ms  cells       0  requests   1422
+lat  20 ms  box uniform          32  sharded median    254.4 ms  cells       0  requests     25
+lat  20 ms  box uniform          32  octree  median    296.2 ms  cells       0  requests     23
+lat  80 ms  random                1  coarse  median    213.8 ms  cells       1  requests      1
+lat  80 ms  random                1  leaf    median    187.9 ms  cells       1  requests      1
+lat  80 ms  random                1  sharded median    256.8 ms  cells       1  requests      2
+lat  80 ms  random                1  octree  median    188.4 ms  cells       1  requests      1
+lat  80 ms  random               32  coarse  median    281.8 ms  cells      16  requests     16
+lat  80 ms  random               32  leaf    median    209.8 ms  cells      32  requests     32
+lat  80 ms  random               32  sharded median    290.3 ms  cells      32  requests     36
+lat  80 ms  random               32  octree  median    213.8 ms  cells      32  requests     32
+lat  80 ms  random             1024  coarse  median    327.7 ms  cells     102  requests    102
+lat  80 ms  random             1024  leaf    median    773.7 ms  cells     806  requests    806
+lat  80 ms  random             1024  sharded median    470.8 ms  cells     806  requests    204
+lat  80 ms  random             1024  octree  median    650.4 ms  cells     806  requests    570
+lat  80 ms  object compact     1000  coarse  median    208.3 ms  cells       1  requests      1
+lat  80 ms  object compact     1000  leaf    median    193.0 ms  cells      25  requests     25
+lat  80 ms  object compact     1000  sharded median    262.0 ms  cells      25  requests      2
+lat  80 ms  object compact     1000  octree  median    189.1 ms  cells      25  requests      4
+lat  80 ms  object cluster     1000  coarse  median    175.9 ms  cells       6  requests      6
+lat  80 ms  object cluster     1000  leaf    median    517.6 ms  cells     503  requests    503
+lat  80 ms  object cluster     1000  sharded median    358.8 ms  cells     503  requests     13
+lat  80 ms  object cluster     1000  octree  median    309.5 ms  cells     503  requests     34
+lat  80 ms  object curve       1000  coarse  median    175.9 ms  cells      20  requests     20
+lat  80 ms  object curve       1000  leaf    median    546.6 ms  cells     517  requests    517
+lat  80 ms  object curve       1000  sharded median    374.9 ms  cells     517  requests     39
+lat  80 ms  object curve       1000  octree  median    329.9 ms  cells     517  requests     47
+lat  80 ms  object compact    10000  coarse  median    202.2 ms  cells       1  requests      1
+lat  80 ms  object compact    10000  leaf    median    229.0 ms  cells      56  requests     56
+lat  80 ms  object compact    10000  sharded median    289.6 ms  cells      56  requests      2
+lat  80 ms  object compact    10000  octree  median    213.9 ms  cells      56  requests     12
+lat  80 ms  object cluster    10000  coarse  median    187.6 ms  cells       8  requests      8
+lat  80 ms  object cluster    10000  leaf    median   1453.0 ms  cells    1836  requests   1836
+lat  80 ms  object cluster    10000  sharded median    594.4 ms  cells    1836  requests     16
+lat  80 ms  object cluster    10000  octree  median    613.4 ms  cells    1836  requests     46
+lat  80 ms  object curve      10000  coarse  median    189.8 ms  cells      20  requests     20
+lat  80 ms  object curve      10000  leaf    median   1196.9 ms  cells    1484  requests   1484
+lat  80 ms  object curve      10000  sharded median    539.2 ms  cells    1484  requests     39
+lat  80 ms  object curve      10000  octree  median    542.9 ms  cells    1484  requests     54
+lat  80 ms  box dense             2  coarse  median    114.0 ms  cells       0  requests      1
+lat  80 ms  box dense             2  leaf    median    111.5 ms  cells       0  requests     27
+lat  80 ms  box dense             2  sharded median    178.6 ms  cells       0  requests      2
+lat  80 ms  box dense             2  octree  median    109.6 ms  cells       0  requests      8
+lat  80 ms  box uniform           2  coarse  median     82.8 ms  cells       0  requests      1
+lat  80 ms  box uniform           2  leaf    median      0.0 ms  cells       0  requests      0
+lat  80 ms  box uniform           2  sharded median      0.0 ms  cells       0  requests      0
+lat  80 ms  box uniform           2  octree  median      0.0 ms  cells       0  requests      0
+lat  80 ms  box dense             8  coarse  median    184.6 ms  cells       0  requests      4
+lat  80 ms  box dense             8  leaf    median    556.4 ms  cells       0  requests    671
+lat  80 ms  box dense             8  sharded median    342.7 ms  cells       0  requests      8
+lat  80 ms  box dense             8  octree  median    307.0 ms  cells       0  requests    124
+lat  80 ms  box uniform           8  coarse  median     84.0 ms  cells       0  requests      2
+lat  80 ms  box uniform           8  leaf    median     98.8 ms  cells       0  requests      4
+lat  80 ms  box uniform           8  sharded median    165.4 ms  cells       0  requests      2
+lat  80 ms  box uniform           8  octree  median     99.5 ms  cells       0  requests      1
+lat  80 ms  box dense            16  coarse  median    144.2 ms  cells       0  requests      8
+lat  80 ms  box dense            16  leaf    median   1446.4 ms  cells       0  requests   1928
+lat  80 ms  box dense            16  sharded median    547.6 ms  cells       0  requests     16
+lat  80 ms  box dense            16  octree  median    625.3 ms  cells       0  requests    143
+lat  80 ms  box uniform          16  coarse  median     83.4 ms  cells       0  requests      4
+lat  80 ms  box uniform          16  leaf    median    102.7 ms  cells       0  requests     13
+lat  80 ms  box uniform          16  sharded median    169.4 ms  cells       0  requests      7
+lat  80 ms  box uniform          16  octree  median    101.6 ms  cells       0  requests      4
+-> /home/andrew/scripts/zarr-octree/bench/results/bench_index.json
