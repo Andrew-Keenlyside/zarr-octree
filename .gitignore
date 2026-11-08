@@ -1,0 +1,6 @@
+__pycache__/
+*.egg-info/
+bench/_stores/
+bench/_data/
+bench/_stores_smoke/
+bench/results/*.npy

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zarr-octree"
+version = "0.1.0"
+description = "Octree chunk packing for Zarr v3: regular chunks for zarr, density-adaptive objects in storage"
+requires-python = ">=3.11"
+dependencies = ["zarr>=3.0", "numpy"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+bench = ["matplotlib", "umap-learn", "scikit-learn"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore:The data type .* does not have a Zarr V3 specification"]
