@@ -84,8 +84,11 @@ finds the codec through the `zarr.codecs` entry point, and a reader without
 it refuses the array (unknown codec).  The array, its shards, inner chunks and
 keys are what `sharding_indexed` gives; only the bytes inside a shard differ:
 
-* a **sparse index** (one row per stored inner chunk, ~28 B) instead of the
-  dense one (16 B per *possible* inner chunk);
+* a **sparse index** (one row per stored inner chunk: 6 B up to 32³ chunks
+  per shard — a narrow Z-order code and a length; offsets are implied, as the
+  chunks are contiguous) instead of the dense one (16 B per *possible* inner
+  chunk); a reader gets it with one suffix read (`index_read_nbytes`, at most
+  half the dense index);
 * inner chunks in Z-order, grouped into **runs** bounded by `min_weight` /
   `max_weight` (`build_runs`, as in format 2), listed in the index;
 * partial reads fetch **one byte range per run touched**, concurrently;
@@ -97,49 +100,71 @@ unchanged; it opts out of zarr 3.4's synchronous sharding path, which assumes
 the dense index.  7 tests (`tests/test_codec.py`), zarr 3.4.0 and 3.2.1.
 
 **In zarr-vectors** (local branch `octree-sharding-proto`, worktree
-`~/scripts/zarr-vectors-py-octree`, 91 lines in three internal files, no API
-change): `Group.create_sharded_chunk_array` builds this codec when
-`ZARR_VECTORS_SHARD_CODEC=zarr_octree_sharding` (a prototype switch); the
-pooled local cell reader reads the sparse index; "is it sharded?" accepts any
-`ShardingCodec`.  zarr-vectors' suite with the codec forced on for every
-sharded array: 2,092 passed, 18 failed — against 2,109 / 1 for the baseline.
-After the sharded-detection fix the codec accounts for 5: four tests assert
-the codec name `sharding_indexed`, one corrupts a dense index and expects
-zarr's crc32c message.  (One failure is in the baseline too; one is the
-worktree lacking the generated `_version.py`.)
+`~/scripts/zarr-vectors-py-octree`, internal files only, no API change;
+prototype switches are environment variables):
+
+* `ZARR_VECTORS_SHARD_CODEC=zarr_octree_sharding`: `create_sharded_chunk_array`
+  builds this codec; "is it sharded?" accepts any `ShardingCodec`;
+* the pooled cell reader (`core/_cells_on_disk.py`) reads the sparse index and
+  each cell's run, from files or — new, `read_cells` — from any store;
+* `ZARR_VECTORS_POOLED_SHARDED=1`: the query engine (`select`, `aio._fetch_chunks`)
+  and remote stores use that pooled reader for sharded arrays — each shard
+  index read once — where today a box query reads every sharded cell through
+  zarr, which re-reads the shard's index for every cell;
+* `ZARR_VECTORS_COALESCE`: `runs` (default: one range per octree run touched,
+  per cell for a dense shard), `none`, or `gap:<bytes>:<span>` (neighbouring
+  cells of any shard share a range while the gap ≤ bytes and the range ≤ span).
+
+zarr-vectors' suite (2,134 tests): with the pooled reader on everywhere, the
+same 1 failure as the untouched baseline; with the octree codec also forced on
+for every sharded array, 5 more, all format-specific — four assert the codec
+name `sharding_indexed`, one corrupts a dense index and expects zarr's crc32c
+message.
 
 `bench/bench_zv.py` (figures: `bench/figures_zv.py`) writes the 3.99 M
 densMAP points through zarr-vectors (64³ cells, zstd; objects of ~1,000
 vertices), sharded 16³ or 32³ cells per shard by either codec (runs
 160–640 kB), and reads boxes and objects through zarr-vectors' API — locally,
-and behind the latency store (20 / 80 ms + 100 MB/s per request).  Every
-store returns the same points for every query.
+and behind the latency store (20 / 80 ms + 100 MB/s per request) — with six
+readers.  Every reader returns the same points for every query.
 
-![zarr-vectors](bench/results/figures/zv_ratio.png)
+![zarr-vectors](bench/results/figures/zv_summary.png)
+
+Geometric mean over the 10 query types (ms; requests and MB at 20 ms), 16³-cell shards
+(32³ within a few % of these, except today's dense-index reads: 116 MB):
+
+| reader | local | 20 ms | 80 ms | requests | MB |
+|---|---:|---:|---:|---:|---:|
+| `sharding_indexed`, read as today | 407 | 687 | 1,455 | 371 | 30.4 |
+| `sharding_indexed`, pooled, one request per cell | 153 | 456 | 1,119 | 220 | 8.2 |
+| `sharding_indexed`, pooled, gaps ≤ 64 KiB merged | 144 | **355** | **823** | 29 | 8.6 |
+| octree, read as today (through zarr) | 445 | 708 | 1,487 | 371 | 22.6 |
+| octree, pooled, one request per cell | 147 | 459 | 1,121 | 220 | 7.9 |
+| octree, pooled, one request per run | **142** | **355** | **825** | 28 | 8.5 |
 
 | | `sharding_indexed` 16³ | octree 16³ | `sharding_indexed` 32³ | octree 32³ |
 |---|---:|---:|---:|---:|
-| store size (MB) | 55.1 | **49.6** | 56.1 | **49.6** |
-| write (s) | 42.2 | 43.0 | 48.6 | 48.4 |
-| query geomean, local (ms) | 440 | **430** | **412** | 471 |
-| query geomean, 20 ms (ms) | **682** | 720 | **705** | 758 |
-| query geomean, 80 ms (ms) | **1,458** | 1,509 | **1,476** | 1,603 |
+| store size (MB) | 55.1 | **48.2** | 56.1 | **48.2** |
+| vertex shards (MB) | 44.5 | **41.1** | 45.0 | **41.1** |
+| write (s) | 43.4 | 45.7 | 49.5 | 48.9 |
 
-* **Disk −10 %** (−39 % on a 400k-point subset, where shards are sparser):
-  the dense index of a 16³ shard is 64 KiB however little it holds.
-* **Queries: no gain, 2–8 % slower with 16³ shards, up to 9 % with 32³.**
-  zarr-vectors reads cell by cell — the pooled local reader one byte range
-  per cell, the object-store path one range request per cell — so the runs
-  never become the unit of a read, and requests per box are identical.  The
-  octree codec loses where (a) a dense shard's sparse index outgrows the
-  64 KiB first read (4 of 112 shards at 16³, 10 of 16 at 32³: a second
-  request), and (b) objects scattered within a run make its span over-read
-  (10-object queries: 265 vs 211 MB at 16³).
-* What it would take to gain: a zarr-vectors reader that fetches runs
-  (`read_runs`) — the bounded units the BRIDGE argument is about — and an
-  index read sized to the shard (or the index at the start of the shard).
-  As a drop-in for `sharding_indexed` under today's readers it buys disk,
-  not speed.
+* **The reader is where the time goes, not the shard format.**  Reading each
+  shard index once (the pooled reader) cuts query time 2.7× locally and 1.5×
+  at 20 ms; letting neighbouring cells share a request cuts it to half of
+  today at 20 ms and 0.57× at 80 ms — 13× fewer requests.
+* **Octree runs as the unit of a read match, but do not beat, coalescing chosen
+  by the query** on `sharding_indexed` (355 vs 355 ms at 20 ms, 825 vs 823 at
+  80 ms; per query 0.97–1.09× at 20 and 80 ms, 0.82–1.19× locally).  `sharding_indexed` already stores inner
+  chunks in Z-order, so merging near neighbours finds the same locality the
+  runs encode; the runs' bound only caps what one request reads.
+* **The octree codec still buys disk:** −12 % store size (the index is 6 B per
+  stored chunk instead of 16 B per possible one), and it reads fewer bytes
+  per query (read as today at 32³: 75 vs 116 MB, as zarr re-reads the index
+  for every cell).
+* So for zarr-vectors the speed is in the reader change, which works on
+  today's format; the octree codec is worth having for size (sparse shards
+  most), and for consumers that want **bounded** units — `read_runs`, the
+  BRIDGE graph argument — rather than for faster box or object queries.
 
 ## Chunk layouts compared: bounded octree runs against uniform grids
 

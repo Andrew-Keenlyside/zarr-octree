@@ -1,29 +1,29 @@
 {
  "indexed-16": {
-  "write_seconds": 42.212989774066955,
+  "write_seconds": 43.416212899028324,
   "disk_bytes": 55058643,
   "vertex_bytes": 44511379,
   "vertex_objects": 56,
   "files": 121
  },
  "octree-16": {
-  "write_seconds": 42.95292293897364,
-  "disk_bytes": 49570046,
-  "vertex_bytes": 41767575,
+  "write_seconds": 45.67296089604497,
+  "disk_bytes": 48185486,
+  "vertex_bytes": 41075295,
   "vertex_objects": 56,
   "files": 121
  },
  "indexed-32": {
-  "write_seconds": 48.63667226792313,
+  "write_seconds": 49.474149308982305,
   "disk_bytes": 56106835,
   "vertex_bytes": 45035475,
   "vertex_objects": 8,
   "files": 25
  },
  "octree-32": {
-  "write_seconds": 48.388614542083815,
-  "disk_bytes": 49565690,
-  "vertex_bytes": 41765511,
+  "write_seconds": 48.860551915015094,
+  "disk_bytes": 48181130,
+  "vertex_bytes": 41073231,
   "vertex_objects": 8,
   "files": 25
  }

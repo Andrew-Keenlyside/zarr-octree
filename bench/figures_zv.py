@@ -13,17 +13,25 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
 
-from figures import HERE, INK2, MUTED, SURFACE
+from figures import HERE, INK2, MUTED
 
-COLOR = {"indexed": "#eb6834", "octree": "#2a78d6", "octree-zarr": "#86b6ef"}
-MARKER = {"indexed": "s", "octree": "o", "octree-zarr": "D"}
+# Fixed order, validated (dataviz validate_palette.js, light): colour follows the reader everywhere;
+# the marker (square: sharding_indexed, circle: octree) is the second cue.
+READERS = ["indexed", "indexed-batched", "indexed-gap", "octree-zarr", "octree-cells", "octree-runs"]
+COLOR = dict(zip(READERS, ["#eb6834", "#6250d6", "#eda100", "#1baf7a", "#e87ba4", "#2a78d6"]))
+MARKER = {r: "s" if r.startswith("indexed") else "o" for r in READERS}
 LABEL = {
-    "indexed": "sharding_indexed (zarr-vectors today)",
-    "octree": "zarr_octree_sharding",
-    "octree-zarr": "zarr_octree_sharding, pooled reader off",
+    "indexed": "sharding_indexed, read as today",
+    "indexed-batched": "sharding_indexed, pooled: one request per cell",
+    "indexed-gap": "sharding_indexed, pooled: gaps ≤ 64 KiB merged",
+    "octree-zarr": "octree, read as today (through zarr)",
+    "octree-cells": "octree, pooled: one request per cell",
+    "octree-runs": "octree, pooled: one request per run",
 }
+STORE_COLOR = {"indexed": COLOR["indexed"], "octree": COLOR["octree-runs"]}
+STORE_LABEL = {"indexed": "sharding_indexed", "octree": "zarr_octree_sharding"}
 KINDS = [("box-dense", "Boxes centred on a vertex"), ("box-uniform", "Boxes placed uniformly"), ("objects", "Objects (~1,000 vertices each)")]
-MARK = dict(markersize=7, markeredgecolor=SURFACE, markeredgewidth=1.2)
+MARK = dict(markersize=7, markeredgecolor="#fcfcfb", markeredgewidth=1.2)
 
 
 def split(layout: str) -> tuple[str, int]:
@@ -32,20 +40,30 @@ def split(layout: str) -> tuple[str, int]:
 
 
 def lat_name(lat: float, bw: float) -> str:
-    return "local store (zarr-vectors reads shard files)" if not lat else f"{lat * 1e3:.0f} ms + {bw / 1e6:.0f} MB/s per request"
+    return "local store" if not lat else f"{lat * 1e3:.0f} ms + {bw / 1e6:.0f} MB/s per request"
 
 
-def medians(q: list) -> dict:
+def medians(q: list, field: str = "seconds") -> dict:
     groups: dict = {}
     for x in q:
-        groups.setdefault((x["latency"], x["layout"], x["kind"], x["size"]), []).append(x["seconds"])
+        groups.setdefault((x["latency"], x["layout"], x["kind"], x["size"]), []).append(x[field])
     return {k: float(np.median(v)) for k, v in groups.items()}
+
+
+def geomean(med: dict, lat: float, layout: str) -> float:
+    v = [x for (l, lay, *_), x in med.items() if l == lat and lay == layout]
+    return float(np.exp(np.mean(np.log(np.maximum(v, 1e-9))))) if v else np.nan
+
+
+def readers_in(res: dict, lat: float) -> list[str]:
+    have = {split(q["layout"])[0] for q in res["queries"] if q["latency"] == lat}
+    return [r for r in READERS if r in have]
 
 
 def fig_storage(res: dict, out: Path) -> None:
     b = res["build"]
     names = list(b)
-    fig, axes = plt.subplots(1, 3, figsize=(14, 3.6))
+    fig, axes = plt.subplots(1, 3, figsize=(14, 3.0))
     y = np.arange(len(names))[::-1]
     for ax, key, scale, title in (
         (axes[0], "disk_bytes", 1e6, "Whole store (MB)"),
@@ -55,9 +73,9 @@ def fig_storage(res: dict, out: Path) -> None:
         for yi, n in zip(y, names):
             kind, _ = split(n)
             v = b[n][key] / scale
-            ax.barh(yi, v, color=COLOR[kind], height=0.6)
+            ax.barh(yi, v, color=STORE_COLOR[kind], height=0.6)
             ax.text(v * 1.01, yi, f"{v:,.1f}", va="center", fontsize=8, color=INK2)
-        ax.set_yticks(y, [f"{LABEL[split(n)[0]]}, {split(n)[1]}³-cell shards" for n in names] if ax is axes[0] else [])
+        ax.set_yticks(y, [f"{STORE_LABEL[split(n)[0]]}, {split(n)[1]}³-cell shards" for n in names] if ax is axes[0] else [])
         ax.set_title(title)
         ax.grid(axis="y", visible=False)
         ax.set_xlim(0, max(b[n][key] / scale for n in names) * 1.18)
@@ -66,57 +84,86 @@ def fig_storage(res: dict, out: Path) -> None:
     plt.close(fig)
 
 
-def fig_queries(res: dict, out: Path, shard: int) -> None:
+def fig_summary(res: dict, out: Path) -> None:
+    """Geometric-mean query time, and requests and bytes per query, by reader."""
     med = medians(res["queries"])
+    req = medians(res["queries"], "requests")
+    mb = medians(res["queries"], "bytes_read")
     lats = sorted({k[0] for k in med})
     bw = res["setup"]["bandwidth"]
-    fig, axes = plt.subplots(len(lats), len(KINDS), figsize=(14, 3.5 * len(lats)), squeeze=False)
-    for i, lat in enumerate(lats):
-        for j, (kind, title) in enumerate(KINDS):
-            ax = axes[i, j]
-            sizes = sorted({k[3] for k in med if k[2] == kind})
-            for variant in ("indexed", "octree", "octree-zarr"):
-                layout = f"{variant}-{shard}"
-                ys = [med.get((lat, layout, kind, s), np.nan) * 1e3 for s in sizes]
-                ax.plot(range(len(sizes)), ys, color=COLOR[variant], marker=MARKER[variant], label=LABEL[variant], **MARK)
-            ax.set_xticks(range(len(sizes)), [f"{s:g}" for s in sizes])
-            ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
-            ax.set_xlabel("objects per query" if kind == "objects" else "box edge (units of 1000)")
-            ax.set_yscale("log")
-            ax.set_title(f"{title} — {lat_name(lat, bw)}" if j == 0 else title, fontsize=9)
-            if j == 0:
-                ax.set_ylabel("median ms")
-    axes[0, 0].legend(fontsize=8, loc="upper left")
-    fig.suptitle(f"Queries through zarr-vectors, {shard}³-cell shards", y=1.0, fontsize=10, color=INK2)
+    remote = [l for l in lats if l]
+    def short(l: float) -> str:
+        return "local" if not l else f"{l * 1e3:.0f} ms latency"
+
+    panels = [(f"Query time (ms), {short(l)}", med, l, 1e3) for l in lats]
+    if remote:
+        panels += [(f"Requests, {short(remote[0])}", req, remote[0], 1),
+                   (f"MB read, {short(remote[0])}", mb, remote[0], 1e-6)]
+    fig, axes = plt.subplots(2, len(panels), figsize=(3.3 * len(panels) + 2.6, 6.2), squeeze=False)
+    for row, shard in enumerate((16, 32)):
+        for col, (title, m, lat, scale) in enumerate(panels):
+            ax = axes[row, col]
+            rs = [r for r in READERS if any(r in readers_in(res, l) for l in lats)]  # the same rows in every panel
+            y = np.arange(len(rs))[::-1]
+            vals = [geomean(m, lat, f"{r}-{shard}") * scale for r in rs]
+            ref = vals[0]
+            for yi, r, v in zip(y, rs, vals):
+                if np.isnan(v):
+                    ax.text(0, yi, "  same reads as above, locally", va="center", fontsize=7.5, color=MUTED)
+                    continue
+                ax.barh(yi, v, color=COLOR[r], height=0.62)
+                ax.plot([v], [yi], marker=MARKER[r], color=COLOR[r], linestyle="none", **MARK)
+                tag = f"{v:,.0f}" if v >= 10 else f"{v:,.1f}"
+                if r != rs[0] and ref:
+                    tag += f"  ({v / ref:.2f}×)"
+                ax.text(v * 1.04, yi, tag, va="center", fontsize=7.5, color=INK2)
+            ax.set_yticks(y, [LABEL[r] for r in rs] if col == 0 else [""] * len(rs), fontsize=8)
+            ax.set_xlim(0, np.nanmax(vals) * 1.55)
+            ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4))
+            ax.grid(axis="y", visible=False)
+            ax.set_title(f"{title}\n{shard}³-cell shards" if row == 0 else f"{shard}³-cell shards", fontsize=8.5)
+    fig.suptitle(f"Geometric mean over all queries ({lat_name(remote[0], bw) if remote else 'local store'} for requests and bytes)",
+                 x=0.01, ha="left", fontsize=9, color=INK2)
     fig.tight_layout()
-    fig.savefig(out, dpi=150)
+    fig.savefig(out, dpi=160)
     plt.close(fig)
 
 
-def fig_ratio(res: dict, out: Path) -> None:
+def fig_ratio(res: dict, out: Path, shard: int) -> None:
+    """Each query's time over ``sharding_indexed`` read as today."""
     med = medians(res["queries"])
     lats = sorted({k[0] for k in med})
     bw = res["setup"]["bandwidth"]
     rows = [(kind, s) for kind, _ in KINDS for s in sorted({k[3] for k in med if k[2] == kind})]
-    fig, axes = plt.subplots(1, len(lats), figsize=(4.8 * len(lats), 0.36 * len(rows) + 1.8), sharey=True, squeeze=False)
+    h = 0.42 * len(rows) + 1.7
+    fig, axes = plt.subplots(1, len(lats), figsize=(4.8 * len(lats), h), sharey=True, squeeze=False)
     y = np.arange(len(rows))[::-1]
+    ratios = [med[k] / med[(k[0], f"indexed-{shard}", k[2], k[3])] for k in med
+              if k[1].endswith(f"-{shard}") and (k[0], f"indexed-{shard}", k[2], k[3]) in med]
+    lo = min([1 / 3] + [r for r in ratios if r > 0]) / 1.3
+    hi = max([3] + ratios) * 1.3
+    ticks = [t for t in (1 / 100, 1 / 30, 1 / 10, 1 / 3, 1, 3, 10) if lo <= t <= hi]
     for ax, lat in zip(axes[0], lats):
         ax.axvline(1, color=MUTED, linewidth=1)
-        for k, (shard, variant) in enumerate([(16, "octree"), (32, "octree"), (16, "octree-zarr"), (32, "octree-zarr")]):
-            r = [med.get((lat, f"{variant}-{shard}", kind, s), np.nan) / med.get((lat, f"indexed-{shard}", kind, s), np.nan) for kind, s in rows]
-            ax.plot(r, y + (1.5 - k) * 0.17, linestyle="none", color=COLOR[variant],
-                    marker="o" if shard == 16 else "^", label=f"{LABEL[variant]}, {shard}³ shards", **MARK)
+        rs = [r for r in readers_in(res, lat) if r != "indexed"]
+        for k, r in enumerate(rs):
+            v = [med.get((lat, f"{r}-{shard}", kind, s), np.nan) / med.get((lat, f"indexed-{shard}", kind, s), np.nan) for kind, s in rows]
+            ax.plot(v, y + ((len(rs) - 1) / 2 - k) * 0.14, linestyle="none", color=COLOR[r], marker=MARKER[r], label=LABEL[r], **MARK)
         ax.set_xscale("log")
-        ax.set_xlim(1 / 3, 3)
-        ax.set_xticks([1 / 3, 1 / 2, 1, 2, 3], ["1/3", "1/2", "1", "2", "3"])
+        ax.set_xlim(lo, hi)
+        ax.set_xticks(ticks, [f"1/{1 / t:.0f}" if t < 1 else f"{t:g}" for t in ticks])
         ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
         ax.set_yticks(y, [f"{kind} {s:g}" for kind, s in rows])
         ax.grid(axis="y", visible=False)
-        ax.set_xlabel("time ÷ sharding_indexed  (< 1: faster)")
-        ax.set_title(lat_name(lat, bw), fontsize=9)
-    handles, labels = axes[0, 0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, fontsize=8)
-    fig.tight_layout(rect=(0, 0, 1, 1 - 0.9 / (0.36 * len(rows) + 1.8)))
+        ax.set_xlabel("time ÷ sharding_indexed read as today  (< 1: faster)")
+        ax.set_title(f"{shard}³-cell shards — {lat_name(lat, bw)}", fontsize=9)
+    handles, labels = {}, {}
+    for ax in axes[0]:
+        for hd, lb in zip(*ax.get_legend_handles_labels()):
+            handles.setdefault(lb, hd)
+    order = [LABEL[r] for r in READERS if LABEL[r] in handles]
+    fig.legend([handles[l] for l in order], order, loc="upper center", ncol=3, fontsize=8)
+    fig.tight_layout(rect=(0, 0, 1, 1 - 0.6 / h))
     fig.savefig(out, dpi=160)
     plt.close(fig)
 
@@ -129,8 +176,9 @@ def main() -> None:
     res = json.loads(args.results.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     fig_storage(res, args.out / "zv_storage.png")
-    fig_queries(res, args.out / "zv_queries_16.png", 16)
-    fig_ratio(res, args.out / "zv_ratio.png")
+    fig_summary(res, args.out / "zv_summary.png")
+    for shard in (16, 32):
+        fig_ratio(res, args.out / f"zv_ratio_{shard}.png", shard)
     print(f"-> {args.out}")
 
 

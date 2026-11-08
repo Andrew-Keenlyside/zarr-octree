@@ -17,12 +17,19 @@ Shard layout (little endian)::
 
     [inner chunks, in Z-order][index][footer]
 
-    index:  magic "ZOSI", version u8, ndim u8, bits u8, pad u8,
+    index:  magic "ZOSI", version u8, ndim u8, bits u8, length width u8 (4 or 8),
             n_chunks u32, n_runs u32,
-            codes u64[n] (Z-order code of each inner chunk within the shard, sorted),
-            offsets u64[n], lengths u64[n],
+            codes u16/u32/u64[n] (Z-order code of each inner chunk within the shard,
+                sorted; the narrowest width holding ndim * bits bits),
+            lengths u32/u64[n] (the chunks are contiguous from byte 0, so offsets
+                are their running sum),
             run_start u32[n_runs + 1] (first chunk of each run), run_weight f64[n_runs]
     footer: index_nbytes u64, crc32 of the index u32, magic "ZOSF"
+
+That is 6 bytes per stored chunk for shards up to 32³ chunks, so a reader
+gets the whole index with one suffix read of :func:`index_read_nbytes`
+bytes -- half of ``sharding_indexed``'s dense index, which costs 16 bytes per
+possible chunk.
 
 The codec subclasses zarr's ``ShardingCodec``, so zarr (``Array.shards``,
 ``Array.chunks``) and code built on its sharding API see an ordinary sharded
@@ -60,10 +67,10 @@ from zarr_octree.tree import build_runs, morton
 
 CODEC_NAME = "zarr_octree_sharding"
 INDEX_MAGIC, FOOTER_MAGIC = b"ZOSI", b"ZOSF"
-INDEX_VERSION = 1
-_HEAD = struct.Struct("<4sBBBxII")  # magic, version, ndim, bits, n_chunks, n_runs
+INDEX_VERSION = 2
+_HEAD = struct.Struct("<4sBBBBII")  # magic, version, ndim, bits, length width, n_chunks, n_runs
 _FOOT = struct.Struct("<QI4s")  # index_nbytes, crc32, magic
-INDEX_READ_GUESS = 64 << 10  # bytes read from the end of a shard to get its index in one request
+INDEX_READ_MIN = 4 << 10
 
 _WEIGHERS: dict[str, Callable[[bytes], float]] = {}
 
@@ -75,6 +82,23 @@ def register_weigher(unit: str, weigh: Callable[[bytes], float]) -> None:
 
 def _bits(chunks_per_shard: tuple[int, ...]) -> int:
     return max(1, max(int(c) - 1 for c in chunks_per_shard).bit_length())
+
+
+def _code_dtype(ndim: int, bits: int) -> str:
+    n = ndim * bits
+    return "<u2" if n <= 16 else "<u4" if n <= 32 else "<u8"
+
+
+def index_read_nbytes(chunks_per_shard: tuple[int, ...]) -> int:
+    """Bytes a reader takes from the end of a shard to get its index in one request.
+
+    Room for every possible chunk at 6 bytes (8 above 32³ chunks per shard)
+    plus a run table of a quarter as many runs; a larger index (very many
+    runs, or chunks of 4 GiB and more) costs a second read.
+    """
+    n = int(np.prod(chunks_per_shard))
+    row = np.dtype(_code_dtype(len(chunks_per_shard), _bits(chunks_per_shard))).itemsize + 4
+    return max(INDEX_READ_MIN, n * row + (n // 4) * 12 + _HEAD.size + _FOOT.size)
 
 
 @dataclass
@@ -121,11 +145,14 @@ class ShardIndex:
 
 def encode_index(index: ShardIndex) -> bytes:
     n, r = len(index.codes), len(index.run_weight)
+    ndim, bits = len(index.chunks_per_shard), _bits(index.chunks_per_shard)
+    if not np.array_equal(index.offsets, np.concatenate([[0], np.cumsum(index.lengths)[:-1]]) if n else index.offsets):
+        raise ValueError("zarr_octree_sharding stores its chunks contiguously from byte 0")
+    width = 4 if n == 0 or int(index.lengths.max()) < 1 << 32 else 8
     body = b"".join([
-        _HEAD.pack(INDEX_MAGIC, INDEX_VERSION, len(index.chunks_per_shard), _bits(index.chunks_per_shard), n, r),
-        index.codes.astype("<u8").tobytes(),
-        index.offsets.astype("<u8").tobytes(),
-        index.lengths.astype("<u8").tobytes(),
+        _HEAD.pack(INDEX_MAGIC, INDEX_VERSION, ndim, bits, width, n, r),
+        index.codes.astype(_code_dtype(ndim, bits)).tobytes(),
+        index.lengths.astype(f"<u{width}").tobytes(),
         index.run_start.astype("<u4").tobytes(),
         index.run_weight.astype("<f8").tobytes(),
     ])
@@ -133,7 +160,7 @@ def encode_index(index: ShardIndex) -> bytes:
 
 
 def decode_index(body: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
-    magic, version, ndim, bits, n, r = _HEAD.unpack_from(body, 0)
+    magic, version, ndim, bits, width, n, r = _HEAD.unpack_from(body, 0)
     if magic != INDEX_MAGIC or version != INDEX_VERSION or ndim != len(chunks_per_shard):
         raise ValueError("not a zarr_octree_sharding index")
     pos = _HEAD.size
@@ -146,8 +173,10 @@ def decode_index(body: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
 
     if bits != _bits(chunks_per_shard):
         raise ValueError("zarr_octree_sharding index was written for another shard shape")
-    codes = take("<u8", n)
-    offsets, lengths = take("<u8", n), take("<u8", n)
+    codes = take(_code_dtype(ndim, bits), n).astype(np.uint64)
+    lengths = take(f"<u{width}", n).astype(np.uint64)
+    offsets = np.zeros(n, np.uint64)
+    np.cumsum(lengths[:-1], out=offsets[1:])
     run_start, run_weight = take("<u4", r + 1), take("<f8", r)
     return ShardIndex(tuple(chunks_per_shard), codes, offsets, lengths, run_start, run_weight)
 
@@ -260,8 +289,8 @@ class OctreeShardingCodec(ShardingCodec):
     # -- index ------------------------------------------------------------------
 
     async def _load_index(self, byte_getter: Any, chunks_per_shard: tuple[int, ...]) -> ShardIndex | None:
-        """The shard's index: one suffix read, a second only for an index larger than the guess."""
-        tail = await byte_getter.get(prototype=numpy_buffer_prototype(), byte_range=SuffixByteRequest(INDEX_READ_GUESS))
+        """The shard's index: one suffix read, a second only for an index larger than :func:`index_read_nbytes`."""
+        tail = await byte_getter.get(prototype=numpy_buffer_prototype(), byte_range=SuffixByteRequest(index_read_nbytes(chunks_per_shard)))
         if tail is None:
             return None
         tail = tail.to_bytes()
@@ -467,10 +496,21 @@ def index_tail_nbytes(tail: bytes) -> int:
     return _split_footer(tail)[0] + _FOOT.size
 
 
-def dense_rows(tail: bytes, chunks_per_shard: tuple[int, ...]) -> np.ndarray:
+def dense_rows(tail: bytes, chunks_per_shard: tuple[int, ...], *, runs: bool = False) -> np.ndarray:
     """The index at the end of ``tail`` as ``sharding_indexed``'s rows: ``(n_inner, 2)`` uint64
-    (offset, nbytes) in C order of the inner chunks, ``2**64 - 1`` for an absent one."""
+    (offset, nbytes) in C order of the inner chunks, ``2**64 - 1`` for an absent one.
+
+    ``runs`` adds a third column, the run holding each chunk (``2**64 - 1`` for
+    an absent one), so a reader can fetch a run's wanted chunks as one range.
+    """
     need = index_tail_nbytes(tail)
     if need > len(tail):
         raise ValueError("tail is shorter than the shard's index")
-    return index_from_shard(tail[len(tail) - need :], chunks_per_shard).dense().offsets_and_lengths.reshape(-1, 2)
+    index = index_from_shard(tail[len(tail) - need :], chunks_per_shard)
+    rows = index.dense().offsets_and_lengths.reshape(-1, 2)
+    if not runs:
+        return rows
+    run = np.full((len(rows), 1), np.iinfo(np.uint64).max, np.uint64)
+    if len(index.codes):
+        run[np.ravel_multi_index(tuple(index.coords.T), chunks_per_shard), 0] = index.run_of()
+    return np.concatenate([rows, run], axis=1)
