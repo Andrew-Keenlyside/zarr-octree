@@ -1,0 +1,1552 @@
+built o64-64k-256k: 7.7 s
+built o32-4k-16k: 2.0 s
+built o32-64k-256k: 2.0 s
+built o16-16k-64k: 0.4 s
+u128 {'objects': 120449, 'median': 2.0, 'p99': 441.5200000000041, 'max': 10927.0, 'min': 1.0, 'cv': 8.988895044540184, 'disk_bytes': 42540697}
+u64 {'objects': 38460, 'median': 2.0, 'p99': 1548.2299999999886, 'max': 79721.0, 'min': 1.0, 'cv': 12.891678514985568, 'disk_bytes': 40841018}
+u32 {'objects': 9364, 'median': 5.0, 'p99': 6012.370000000001, 'max': 457430.0, 'min': 1.0, 'cv': 14.772520263256864, 'disk_bytes': 40657355}
+u16 {'objects': 1826, 'median': 19.0, 'p99': 31236.25, 'max': 799658.0, 'min': 1.0, 'cv': 10.163299521666271, 'disk_bytes': 40849538}
+u8 {'objects': 326, 'median': 158.0, 'p99': 229230.5, 'max': 801109.0, 'min': 1.0, 'cv': 4.72555336369317, 'disk_bytes': 41039475}
+o128-1k-4k {'objects': 1162, 'median': 3251.0, 'p99': 10104.560000000001, 'max': 10927.0, 'min': 66.0, 'cv': 0.5353494502129007, 'disk_bytes': 44589907}
+o128-4k-16k {'objects': 348, 'median': 11659.5, 'p99': 15962.31, 'max': 15999.0, 'min': 4055.0, 'cv': 0.2839212052302883, 'disk_bytes': 44504437}
+o128-16k-64k {'objects': 87, 'median': 49366.0, 'p99': 63601.72, 'max': 63901.0, 'min': 16463.0, 'cv': 0.31136493231049905, 'disk_bytes': 44477032}
+o128-64k-256k {'objects': 21, 'median': 205667.0, 'p99': 253139.2, 'max': 253605.0, 'min': 72771.0, 'cv': 0.28181508786935294, 'disk_bytes': 44470102}
+o128-0-16k {'objects': 409, 'median': 10180.0, 'p99': 15969.16, 'max': 15999.0, 'min': 4.0, 'cv': 0.49566508255399944, 'disk_bytes': 44510842}
+o64-4k-16k {'objects': 275, 'median': 12952.0, 'p99': 69712.43999999999, 'max': 79721.0, 'min': 1694.0, 'cv': 0.7948268550335063, 'disk_bytes': 41485269}
+o64-16k-64k {'objects': 86, 'median': 48201.0, 'p99': 73879.80000000003, 'max': 79721.0, 'min': 16463.0, 'cv': 0.33144461040167483, 'disk_bytes': 41465424}
+o64-64k-256k {'objects': 21, 'median': 205667.0, 'p99': 253139.2, 'max': 253605.0, 'min': 72771.0, 'cv': 0.28181508786935294, 'disk_bytes': 41458599}
+o32-4k-16k {'objects': 225, 'median': 12500.0, 'p99': 187600.47999999957, 'max': 457430.0, 'min': 17.0, 'cv': 2.1114044577639035, 'disk_bytes': 40830820}
+o32-16k-64k {'objects': 73, 'median': 47471.0, 'p99': 278668.40000000026, 'max': 457430.0, 'min': 652.0, 'cv': 1.0763773268903958, 'disk_bytes': 40814860}
+o32-64k-256k {'objects': 20, 'median': 210785.0, 'p99': 418703.24999999977, 'max': 457430.0, 'min': 18690.0, 'cv': 0.4255034538984065, 'disk_bytes': 40809295}
+o16-16k-64k {'objects': 61, 'median': 50527.0, 'p99': 534020.5999999994, 'max': 799658.0, 'min': 107.0, 'cv': 1.6493296018318788, 'disk_bytes': 40885175}
+lat   0 direct random        1 u128                  0.7 ms  req      1  MB   0.02
+lat   0 direct random        1 u64                   0.8 ms  req      1  MB   0.14
+lat   0 direct random        1 u32                   1.2 ms  req      1  MB   0.34
+lat   0 direct random        1 u16                   4.2 ms  req      1  MB   1.87
+lat   0 direct random        1 u8                    4.9 ms  req      1  MB   2.22
+lat   0 direct random        1 o128-1k-4k            0.8 ms  req      1  MB   0.05
+lat   0 direct random        1 o128-4k-16k           0.8 ms  req      1  MB   0.14
+lat   0 direct random        1 o128-16k-64k          1.0 ms  req      1  MB   0.54
+lat   0 direct random        1 o128-64k-256k         1.5 ms  req      1  MB   2.73
+lat   0 direct random        1 o128-0-16k            0.7 ms  req      1  MB   0.14
+lat   0 direct random        1 o64-4k-16k            1.2 ms  req      1  MB   0.18
+lat   0 direct random        1 o64-16k-64k           1.1 ms  req      1  MB   0.47
+lat   0 direct random        1 o64-64k-256k          2.4 ms  req      1  MB   2.58
+lat   0 direct random        1 o32-4k-16k            4.4 ms  req      1  MB   0.35
+lat   0 direct random        1 o32-16k-64k           4.4 ms  req      1  MB   0.64
+lat   0 direct random        1 o32-64k-256k          5.8 ms  req      1  MB   2.50
+lat   0 direct random        1 o16-16k-64k          10.4 ms  req      1  MB   1.87
+lat   0 direct random       32 u128                  9.2 ms  req     32  MB   0.91
+lat   0 direct random       32 u64                  16.3 ms  req     30  MB   5.06
+lat   0 direct random       32 u32                  29.2 ms  req     24  MB  12.93
+lat   0 direct random       32 u16                  30.6 ms  req     19  MB  19.81
+lat   0 direct random       32 u8                   35.0 ms  req     16  MB  23.32
+lat   0 direct random       32 o128-1k-4k           11.3 ms  req     32  MB   1.50
+lat   0 direct random       32 o128-4k-16k          11.1 ms  req     31  MB   4.46
+lat   0 direct random       32 o128-16k-64k         12.5 ms  req     27  MB  14.90
+lat   0 direct random       32 o128-64k-256k        14.3 ms  req     15  MB  33.79
+lat   0 direct random       32 o128-0-16k           11.8 ms  req     31  MB   4.29
+lat   0 direct random       32 o64-4k-16k           20.1 ms  req     29  MB   6.79
+lat   0 direct random       32 o64-16k-64k          21.0 ms  req     27  MB  14.10
+lat   0 direct random       32 o64-64k-256k         20.0 ms  req     15  MB  31.78
+lat   0 direct random       32 o32-4k-16k           39.4 ms  req     23  MB  13.82
+lat   0 direct random       32 o32-16k-64k          23.5 ms  req     22  MB  19.00
+lat   0 direct random       32 o32-64k-256k         23.8 ms  req     14  MB  32.24
+lat   0 direct random       32 o16-16k-64k          34.1 ms  req     18  MB  22.82
+lat   0 direct random     1024 u128                182.4 ms  req    802  MB  13.49
+lat   0 direct random     1024 u64                 137.0 ms  req    570  MB  23.25
+lat   0 direct random     1024 u32                 107.3 ms  req    347  MB  32.11
+lat   0 direct random     1024 u16                  82.5 ms  req    196  MB  37.27
+lat   0 direct random     1024 u8                   68.1 ms  req    102  MB  40.22
+lat   0 direct random     1024 o128-1k-4k          199.1 ms  req    633  MB  27.23
+lat   0 direct random     1024 o128-4k-16k         141.8 ms  req    320  MB  41.70
+lat   0 direct random     1024 o128-16k-64k         89.3 ms  req     87  MB  44.47
+lat   0 direct random     1024 o128-64k-256k        66.6 ms  req     21  MB  44.47
+lat   0 direct random     1024 o128-0-16k          127.4 ms  req    337  MB  40.87
+lat   0 direct random     1024 o64-4k-16k          114.4 ms  req    253  MB  39.58
+lat   0 direct random     1024 o64-16k-64k          80.2 ms  req     86  MB  41.46
+lat   0 direct random     1024 o64-64k-256k         60.0 ms  req     21  MB  41.46
+lat   0 direct random     1024 o32-4k-16k          101.4 ms  req    196  MB  39.54
+lat   0 direct random     1024 o32-16k-64k          84.2 ms  req     71  MB  40.79
+lat   0 direct random     1024 o32-64k-256k         62.3 ms  req     20  MB  40.81
+lat   0 direct random     1024 o16-16k-64k          71.9 ms  req     57  MB  40.85
+lat   0 direct random    16384 u128               1347.6 ms  req   6708  MB  28.46
+lat   0 direct random    16384 u64                 680.9 ms  req   3224  MB  35.86
+lat   0 direct random    16384 u32                 299.9 ms  req   1277  MB  39.06
+lat   0 direct random    16384 u16                 156.0 ms  req    505  MB  40.36
+lat   0 direct random    16384 u8                   92.2 ms  req    166  MB  40.96
+lat   0 direct random    16384 o128-1k-4k          489.1 ms  req   1156  MB  44.49
+lat   0 direct random    16384 o128-4k-16k         327.3 ms  req    348  MB  44.48
+lat   0 direct random    16384 o128-16k-64k        276.2 ms  req     87  MB  44.47
+lat   0 direct random    16384 o128-64k-256k       267.9 ms  req     21  MB  44.47
+lat   0 direct random    16384 o128-0-16k          343.7 ms  req    396  MB  44.41
+lat   0 direct random    16384 o64-4k-16k          214.9 ms  req    275  MB  41.47
+lat   0 direct random    16384 o64-16k-64k         175.0 ms  req     86  MB  41.46
+lat   0 direct random    16384 o64-64k-256k        170.2 ms  req     21  MB  41.46
+lat   0 direct random    16384 o32-4k-16k          165.1 ms  req    223  MB  40.81
+lat   0 direct random    16384 o32-16k-64k         133.3 ms  req     73  MB  40.81
+lat   0 direct random    16384 o32-64k-256k        130.3 ms  req     20  MB  40.81
+lat   0 direct random    16384 o16-16k-64k         100.3 ms  req     60  MB  40.88
+lat   0 direct compact    1000 u128                  5.6 ms  req     24  MB   0.03
+lat   0 direct compact    1000 u64                   2.5 ms  req      8  MB   0.09
+lat   0 direct compact    1000 u32                   1.7 ms  req      3  MB   0.30
+lat   0 direct compact    1000 u16                   2.2 ms  req      1  MB   0.85
+lat   0 direct compact    1000 u8                    3.5 ms  req      1  MB   2.42
+lat   0 direct compact    1000 o128-1k-4k            3.2 ms  req      4  MB   0.18
+lat   0 direct compact    1000 o128-4k-16k           2.5 ms  req      3  MB   0.42
+lat   0 direct compact    1000 o128-16k-64k          2.2 ms  req      2  MB   0.74
+lat   0 direct compact    1000 o128-64k-256k         2.4 ms  req      1  MB   2.59
+lat   0 direct compact    1000 o128-0-16k            2.5 ms  req      3  MB   0.39
+lat   0 direct compact    1000 o64-4k-16k            2.0 ms  req      3  MB   0.39
+lat   0 direct compact    1000 o64-16k-64k           1.7 ms  req      2  MB   0.65
+lat   0 direct compact    1000 o64-64k-256k          2.0 ms  req      1  MB   2.45
+lat   0 direct compact    1000 o32-4k-16k            2.0 ms  req      3  MB   0.39
+lat   0 direct compact    1000 o32-16k-64k           1.7 ms  req      1  MB   0.64
+lat   0 direct compact    1000 o32-64k-256k          2.1 ms  req      1  MB   2.39
+lat   0 direct compact    1000 o16-16k-64k           2.0 ms  req      1  MB   0.85
+lat   0 direct cluster    1000 u128                 74.3 ms  req    263  MB   0.32
+lat   0 direct cluster    1000 u64                  40.3 ms  req     91  MB   0.50
+lat   0 direct cluster    1000 u32                  16.4 ms  req     28  MB   0.60
+lat   0 direct cluster    1000 u16                   6.7 ms  req     10  MB   0.80
+lat   0 direct cluster    1000 u8                    3.9 ms  req      5  MB   1.20
+lat   0 direct cluster    1000 o128-1k-4k           34.7 ms  req     30  MB   1.39
+lat   0 direct cluster    1000 o128-4k-16k          37.2 ms  req     10  MB   1.90
+lat   0 direct cluster    1000 o128-16k-64k         31.9 ms  req      4  MB   2.75
+lat   0 direct cluster    1000 o128-64k-256k        27.3 ms  req      1  MB   3.15
+lat   0 direct cluster    1000 o128-0-16k           30.2 ms  req     10  MB   1.82
+lat   0 direct cluster    1000 o64-4k-16k           14.5 ms  req     10  MB   1.38
+lat   0 direct cluster    1000 o64-16k-64k          13.8 ms  req      4  MB   2.28
+lat   0 direct cluster    1000 o64-64k-256k         15.1 ms  req      1  MB   2.64
+lat   0 direct cluster    1000 o32-4k-16k            8.9 ms  req     10  MB   1.22
+lat   0 direct cluster    1000 o32-16k-64k           6.1 ms  req      4  MB   2.08
+lat   0 direct cluster    1000 o32-64k-256k          5.4 ms  req      1  MB   2.60
+lat   0 direct cluster    1000 o16-16k-64k           3.9 ms  req      3  MB   2.05
+lat   0 direct curve      1000 u128                103.7 ms  req    530  MB   1.14
+lat   0 direct curve      1000 u64                  58.3 ms  req    257  MB   1.47
+lat   0 direct curve      1000 u32                  27.8 ms  req    112  MB   1.61
+lat   0 direct curve      1000 u16                  14.5 ms  req     49  MB   1.67
+lat   0 direct curve      1000 u8                    8.9 ms  req     18  MB   1.88
+lat   0 direct curve      1000 o128-1k-4k           43.4 ms  req     60  MB   1.96
+lat   0 direct curve      1000 o128-4k-16k          32.3 ms  req     18  MB   2.12
+lat   0 direct curve      1000 o128-16k-64k         30.2 ms  req      7  MB   3.47
+lat   0 direct curve      1000 o128-64k-256k        23.4 ms  req      4  MB   9.40
+lat   0 direct curve      1000 o128-0-16k           25.4 ms  req     18  MB   2.12
+lat   0 direct curve      1000 o64-4k-16k           16.3 ms  req     18  MB   1.98
+lat   0 direct curve      1000 o64-16k-64k          18.3 ms  req      7  MB   3.14
+lat   0 direct curve      1000 o64-64k-256k         18.2 ms  req      4  MB   8.61
+lat   0 direct curve      1000 o32-4k-16k           14.0 ms  req     18  MB   1.91
+lat   0 direct curve      1000 o32-16k-64k          11.7 ms  req      7  MB   3.02
+lat   0 direct curve      1000 o32-64k-256k         11.7 ms  req      4  MB   8.38
+lat   0 direct curve      1000 o16-16k-64k           8.8 ms  req      7  MB   2.63
+lat   0 direct compact   10000 u128                 40.3 ms  req    134  MB   0.20
+lat   0 direct compact   10000 u64                  20.4 ms  req     30  MB   0.33
+lat   0 direct compact   10000 u32                  12.4 ms  req     12  MB   0.54
+lat   0 direct compact   10000 u16                   9.6 ms  req      8  MB   2.22
+lat   0 direct compact   10000 u8                   11.9 ms  req      2  MB   4.65
+lat   0 direct compact   10000 o128-1k-4k           17.5 ms  req     16  MB   0.56
+lat   0 direct compact   10000 o128-4k-16k          15.0 ms  req      8  MB   0.97
+lat   0 direct compact   10000 o128-16k-64k         14.2 ms  req      4  MB   2.16
+lat   0 direct compact   10000 o128-64k-256k        15.0 ms  req      3  MB   6.52
+lat   0 direct compact   10000 o128-0-16k           14.6 ms  req      8  MB   0.94
+lat   0 direct compact   10000 o64-4k-16k           10.7 ms  req      8  MB   1.06
+lat   0 direct compact   10000 o64-16k-64k          10.2 ms  req      4  MB   2.14
+lat   0 direct compact   10000 o64-64k-256k         10.5 ms  req      3  MB   6.59
+lat   0 direct compact   10000 o32-4k-16k            9.8 ms  req      6  MB   1.08
+lat   0 direct compact   10000 o32-16k-64k           9.3 ms  req      4  MB   2.18
+lat   0 direct compact   10000 o32-64k-256k          9.8 ms  req      2  MB   6.52
+lat   0 direct compact   10000 o16-16k-64k          10.2 ms  req      2  MB   2.22
+lat   0 direct cluster   10000 u128                538.8 ms  req   2593  MB   1.28
+lat   0 direct cluster   10000 u64                 132.9 ms  req    590  MB   1.27
+lat   0 direct cluster   10000 u32                  40.6 ms  req    125  MB   1.29
+lat   0 direct cluster   10000 u16                  21.1 ms  req     30  MB   1.34
+lat   0 direct cluster   10000 u8                   10.3 ms  req     10  MB   1.69
+lat   0 direct cluster   10000 o128-1k-4k           97.5 ms  req     52  MB   2.06
+lat   0 direct cluster   10000 o128-4k-16k          72.2 ms  req     18  MB   2.66
+lat   0 direct cluster   10000 o128-16k-64k         82.0 ms  req      9  MB   6.32
+lat   0 direct cluster   10000 o128-64k-256k        87.1 ms  req      6  MB  13.05
+lat   0 direct cluster   10000 o128-0-16k           69.0 ms  req     18  MB   2.62
+lat   0 direct cluster   10000 o64-4k-16k           27.2 ms  req     18  MB   2.20
+lat   0 direct cluster   10000 o64-16k-64k          25.0 ms  req      9  MB   5.33
+lat   0 direct cluster   10000 o64-64k-256k         35.8 ms  req      6  MB  11.44
+lat   0 direct cluster   10000 o32-4k-16k           18.6 ms  req     18  MB   2.04
+lat   0 direct cluster   10000 o32-16k-64k          15.9 ms  req      9  MB   4.68
+lat   0 direct cluster   10000 o32-64k-256k         16.4 ms  req      6  MB  11.01
+lat   0 direct cluster   10000 o16-16k-64k          11.3 ms  req      7  MB   3.83
+lat   0 direct curve     10000 u128                337.8 ms  req   1700  MB   1.56
+lat   0 direct curve     10000 u64                 139.9 ms  req    626  MB   1.62
+lat   0 direct curve     10000 u32                  57.5 ms  req    204  MB   1.65
+lat   0 direct curve     10000 u16                  31.6 ms  req     74  MB   1.90
+lat   0 direct curve     10000 u8                   21.3 ms  req     29  MB   3.67
+lat   0 direct curve     10000 o128-1k-4k           69.7 ms  req     73  MB   2.78
+lat   0 direct curve     10000 o128-4k-16k          55.7 ms  req     26  MB   3.94
+lat   0 direct curve     10000 o128-16k-64k         51.8 ms  req     13  MB   7.17
+lat   0 direct curve     10000 o128-64k-256k        56.1 ms  req      8  MB  19.00
+lat   0 direct curve     10000 o128-0-16k           54.6 ms  req     28  MB   3.77
+lat   0 direct curve     10000 o64-4k-16k           28.7 ms  req     26  MB   3.27
+lat   0 direct curve     10000 o64-16k-64k          26.6 ms  req     13  MB   6.12
+lat   0 direct curve     10000 o64-64k-256k         27.4 ms  req      8  MB  16.47
+lat   0 direct curve     10000 o32-4k-16k           19.1 ms  req     26  MB   2.86
+lat   0 direct curve     10000 o32-16k-64k          16.9 ms  req     13  MB   5.63
+lat   0 direct curve     10000 o32-64k-256k         16.9 ms  req      8  MB  15.68
+lat   0 direct curve     10000 o16-16k-64k          14.0 ms  req     13  MB   5.71
+lat   0 direct box-dens   15.6 u128                  5.5 ms  req     27
+lat   0 direct box-dens   15.6 u64                   2.7 ms  req      8
+lat   0 direct box-dens   15.6 u32                   2.6 ms  req      4
+lat   0 direct box-dens   15.6 u16                   3.3 ms  req      2
+lat   0 direct box-dens   15.6 u8                   17.9 ms  req      1
+lat   0 direct box-dens   15.6 o128-1k-4k            3.5 ms  req      8
+lat   0 direct box-dens   15.6 o128-4k-16k           2.0 ms  req      3
+lat   0 direct box-dens   15.6 o128-16k-64k          1.5 ms  req      2
+lat   0 direct box-dens   15.6 o128-64k-256k         2.1 ms  req      2
+lat   0 direct box-dens   15.6 o128-0-16k            1.7 ms  req      2
+lat   0 direct box-dens   15.6 o64-4k-16k            2.2 ms  req      3
+lat   0 direct box-dens   15.6 o64-16k-64k           1.6 ms  req      2
+lat   0 direct box-dens   15.6 o64-64k-256k          2.1 ms  req      2
+lat   0 direct box-dens   15.6 o32-4k-16k            2.8 ms  req      2
+lat   0 direct box-dens   15.6 o32-16k-64k           2.9 ms  req      2
+lat   0 direct box-dens   15.6 o32-64k-256k          3.6 ms  req      2
+lat   0 direct box-dens   15.6 o16-16k-64k           3.4 ms  req      2
+lat   0 direct box-unif   15.6 u128                  0.0 ms  req      0
+lat   0 direct box-unif   15.6 u64                   0.0 ms  req      0
+lat   0 direct box-unif   15.6 u32                   0.0 ms  req      0
+lat   0 direct box-unif   15.6 u16                   0.3 ms  req      1
+lat   0 direct box-unif   15.6 u8                    0.3 ms  req      1
+lat   0 direct box-unif   15.6 o128-1k-4k            0.0 ms  req      0
+lat   0 direct box-unif   15.6 o128-4k-16k           0.0 ms  req      0
+lat   0 direct box-unif   15.6 o128-16k-64k          0.0 ms  req      0
+lat   0 direct box-unif   15.6 o128-64k-256k         0.0 ms  req      0
+lat   0 direct box-unif   15.6 o128-0-16k            0.0 ms  req      0
+lat   0 direct box-unif   15.6 o64-4k-16k            0.0 ms  req      0
+lat   0 direct box-unif   15.6 o64-16k-64k           0.0 ms  req      0
+lat   0 direct box-unif   15.6 o64-64k-256k          0.0 ms  req      0
+lat   0 direct box-unif   15.6 o32-4k-16k            0.0 ms  req      0
+lat   0 direct box-unif   15.6 o32-16k-64k           0.0 ms  req      0
+lat   0 direct box-unif   15.6 o32-64k-256k          0.0 ms  req      0
+lat   0 direct box-unif   15.6 o16-16k-64k           0.4 ms  req      1
+lat   0 direct box-dens   62.5 u128                168.5 ms  req    718
+lat   0 direct box-dens   62.5 u64                  68.2 ms  req    124
+lat   0 direct box-dens   62.5 u32                  52.7 ms  req     27
+lat   0 direct box-dens   62.5 u16                  51.3 ms  req      8
+lat   0 direct box-dens   62.5 u8                   53.0 ms  req      4
+lat   0 direct box-dens   62.5 o128-1k-4k          108.4 ms  req    193
+lat   0 direct box-dens   62.5 o128-4k-16k          86.9 ms  req     99
+lat   0 direct box-dens   62.5 o128-16k-64k         72.3 ms  req     25
+lat   0 direct box-dens   62.5 o128-64k-256k        70.2 ms  req      7
+lat   0 direct box-dens   62.5 o128-0-16k           88.4 ms  req    102
+lat   0 direct box-dens   62.5 o64-4k-16k           60.3 ms  req     40
+lat   0 direct box-dens   62.5 o64-16k-64k          57.3 ms  req     24
+lat   0 direct box-dens   62.5 o64-64k-256k         54.0 ms  req      7
+lat   0 direct box-dens   62.5 o32-4k-16k           51.0 ms  req     16
+lat   0 direct box-dens   62.5 o32-16k-64k          50.3 ms  req     11
+lat   0 direct box-dens   62.5 o32-64k-256k         50.3 ms  req      6
+lat   0 direct box-dens   62.5 o16-16k-64k          51.0 ms  req      5
+lat   0 direct box-unif   62.5 u128                  0.1 ms  req      0
+lat   0 direct box-unif   62.5 u64                   0.3 ms  req      1
+lat   0 direct box-unif   62.5 u32                   0.7 ms  req      2
+lat   0 direct box-unif   62.5 u16                   1.7 ms  req      6
+lat   0 direct box-unif   62.5 u8                    1.0 ms  req      2
+lat   0 direct box-unif   62.5 o128-1k-4k            0.0 ms  req      0
+lat   0 direct box-unif   62.5 o128-4k-16k           0.0 ms  req      0
+lat   0 direct box-unif   62.5 o128-16k-64k          0.0 ms  req      0
+lat   0 direct box-unif   62.5 o128-64k-256k         0.0 ms  req      0
+lat   0 direct box-unif   62.5 o128-0-16k            0.0 ms  req      0
+lat   0 direct box-unif   62.5 o64-4k-16k            0.6 ms  req      1
+lat   0 direct box-unif   62.5 o64-16k-64k           0.9 ms  req      1
+lat   0 direct box-unif   62.5 o64-64k-256k          1.3 ms  req      1
+lat   0 direct box-unif   62.5 o32-4k-16k            0.7 ms  req      1
+lat   0 direct box-unif   62.5 o32-16k-64k           0.8 ms  req      1
+lat   0 direct box-unif   62.5 o32-64k-256k          1.4 ms  req      1
+lat   0 direct box-unif   62.5 o16-16k-64k           1.5 ms  req      1
+lat   0 direct box-dens  125.0 u128                411.2 ms  req   1862
+lat   0 direct box-dens  125.0 u64                 126.3 ms  req    413
+lat   0 direct box-dens  125.0 u32                  27.0 ms  req    108
+lat   0 direct box-dens  125.0 u16                  12.5 ms  req     25
+lat   0 direct box-dens  125.0 u8                    9.8 ms  req      8
+lat   0 direct box-dens  125.0 o128-1k-4k           96.0 ms  req     55
+lat   0 direct box-dens  125.0 o128-4k-16k          76.8 ms  req     18
+lat   0 direct box-dens  125.0 o128-16k-64k         89.6 ms  req      6
+lat   0 direct box-dens  125.0 o128-64k-256k        91.2 ms  req      2
+lat   0 direct box-dens  125.0 o128-0-16k           86.8 ms  req     23
+lat   0 direct box-dens  125.0 o64-4k-16k           31.6 ms  req     15
+lat   0 direct box-dens  125.0 o64-16k-64k          37.5 ms  req      6
+lat   0 direct box-dens  125.0 o64-64k-256k         31.9 ms  req      2
+lat   0 direct box-dens  125.0 o32-4k-16k           32.1 ms  req     11
+lat   0 direct box-dens  125.0 o32-16k-64k          14.3 ms  req      6
+lat   0 direct box-dens  125.0 o32-64k-256k         13.2 ms  req      2
+lat   0 direct box-dens  125.0 o16-16k-64k          10.9 ms  req      4
+lat   0 direct box-unif  125.0 u128                  7.1 ms  req     36
+lat   0 direct box-unif  125.0 u64                  10.0 ms  req     47
+lat   0 direct box-unif  125.0 u32                   8.8 ms  req     42
+lat   0 direct box-unif  125.0 u16                   4.9 ms  req     22
+lat   0 direct box-unif  125.0 u8                    8.4 ms  req      8
+lat   0 direct box-unif  125.0 o128-1k-4k            4.2 ms  req      8
+lat   0 direct box-unif  125.0 o128-4k-16k           4.4 ms  req      7
+lat   0 direct box-unif  125.0 o128-16k-64k          3.5 ms  req      5
+lat   0 direct box-unif  125.0 o128-64k-256k         4.3 ms  req      3
+lat   0 direct box-unif  125.0 o128-0-16k            3.0 ms  req      7
+lat   0 direct box-unif  125.0 o64-4k-16k            3.4 ms  req      8
+lat   0 direct box-unif  125.0 o64-16k-64k           3.1 ms  req      5
+lat   0 direct box-unif  125.0 o64-64k-256k          3.2 ms  req      3
+lat   0 direct box-unif  125.0 o32-4k-16k            3.1 ms  req      8
+lat   0 direct box-unif  125.0 o32-16k-64k           3.2 ms  req      5
+lat   0 direct box-unif  125.0 o32-64k-256k          3.0 ms  req      3
+lat   0 direct box-unif  125.0 o16-16k-64k           2.2 ms  req      5
+lat   0 direct box-dens  250.0 u128               1988.4 ms  req  10610
+lat   0 direct box-dens  250.0 u64                 575.3 ms  req   2978
+lat   0 direct box-dens  250.0 u32                 149.8 ms  req    656
+lat   0 direct box-dens  250.0 u16                  52.0 ms  req    124
+lat   0 direct box-dens  250.0 u8                   27.5 ms  req     27
+lat   0 direct box-dens  250.0 o128-1k-4k          330.7 ms  req    143
+lat   0 direct box-dens  250.0 o128-4k-16k         324.5 ms  req     45
+lat   0 direct box-dens  250.0 o128-16k-64k        305.2 ms  req     13
+lat   0 direct box-dens  250.0 o128-64k-256k       328.0 ms  req      6
+lat   0 direct box-dens  250.0 o128-0-16k          321.3 ms  req     49
+lat   0 direct box-dens  250.0 o64-4k-16k          106.9 ms  req     45
+lat   0 direct box-dens  250.0 o64-16k-64k         103.6 ms  req     13
+lat   0 direct box-dens  250.0 o64-64k-256k        101.9 ms  req      6
+lat   0 direct box-dens  250.0 o32-4k-16k           40.5 ms  req     43
+lat   0 direct box-dens  250.0 o32-16k-64k          36.0 ms  req     13
+lat   0 direct box-dens  250.0 o32-64k-256k         34.2 ms  req      6
+lat   0 direct box-dens  250.0 o16-16k-64k          23.8 ms  req     12
+lat   0 direct box-unif  250.0 u128                249.4 ms  req   1229
+lat   0 direct box-unif  250.0 u64                 133.6 ms  req    519
+lat   0 direct box-unif  250.0 u32                  38.9 ms  req    204
+lat   0 direct box-unif  250.0 u16                  12.2 ms  req     49
+lat   0 direct box-unif  250.0 u8                   16.7 ms  req     12
+lat   0 direct box-unif  250.0 o128-1k-4k           47.8 ms  req      6
+lat   0 direct box-unif  250.0 o128-4k-16k          49.5 ms  req      6
+lat   0 direct box-unif  250.0 o128-16k-64k         44.4 ms  req      4
+lat   0 direct box-unif  250.0 o128-64k-256k        47.7 ms  req      3
+lat   0 direct box-unif  250.0 o128-0-16k           42.8 ms  req      6
+lat   0 direct box-unif  250.0 o64-4k-16k           17.7 ms  req      6
+lat   0 direct box-unif  250.0 o64-16k-64k          31.2 ms  req      4
+lat   0 direct box-unif  250.0 o64-64k-256k         16.4 ms  req      3
+lat   0 direct box-unif  250.0 o32-4k-16k            8.5 ms  req      5
+lat   0 direct box-unif  250.0 o32-16k-64k           8.0 ms  req      4
+lat   0 direct box-unif  250.0 o32-64k-256k         12.4 ms  req      3
+lat   0 direct box-unif  250.0 o16-16k-64k           4.9 ms  req      4
+lat   0 zarr   random        1 u128                  9.9 ms  req      1  MB   0.02
+lat   0 zarr   random        1 u64                   2.3 ms  req      1  MB   0.14
+lat   0 zarr   random        1 u32                   1.7 ms  req      1  MB   0.34
+lat   0 zarr   random        1 u16                   4.8 ms  req      1  MB   1.87
+lat   0 zarr   random        1 u8                    5.6 ms  req      1  MB   2.22
+lat   0 zarr   random        1 o128-1k-4k           16.7 ms  req      1  MB   0.04
+lat   0 zarr   random        1 o128-4k-16k          10.0 ms  req      1  MB   0.14
+lat   0 zarr   random        1 o128-16k-64k         10.2 ms  req      1  MB   0.54
+lat   0 zarr   random        1 o128-64k-256k        10.8 ms  req      1  MB   2.73
+lat   0 zarr   random        1 o128-0-16k           10.1 ms  req      1  MB   0.14
+lat   0 zarr   random        1 o64-4k-16k            2.5 ms  req      1  MB   0.16
+lat   0 zarr   random        1 o64-16k-64k           2.4 ms  req      1  MB   0.47
+lat   0 zarr   random        1 o64-64k-256k          2.8 ms  req      1  MB   2.58
+lat   0 zarr   random        1 o32-4k-16k            1.9 ms  req      1  MB   0.34
+lat   0 zarr   random        1 o32-16k-64k           2.2 ms  req      1  MB   0.63
+lat   0 zarr   random        1 o32-64k-256k          2.7 ms  req      1  MB   2.50
+lat   0 zarr   random        1 o16-16k-64k           5.8 ms  req      1  MB   1.87
+lat   0 zarr   random       32 u128                 31.1 ms  req     32  MB   0.91
+lat   0 zarr   random       32 u64                  17.6 ms  req     30  MB   5.06
+lat   0 zarr   random       32 u32                  19.8 ms  req     24  MB  12.93
+lat   0 zarr   random       32 u16                  25.0 ms  req     19  MB  19.81
+lat   0 zarr   random       32 u8                   24.5 ms  req     16  MB  23.32
+lat   0 zarr   random       32 o128-1k-4k           34.2 ms  req     32  MB   1.50
+lat   0 zarr   random       32 o128-4k-16k          33.9 ms  req     31  MB   4.46
+lat   0 zarr   random       32 o128-16k-64k         35.2 ms  req     27  MB  14.90
+lat   0 zarr   random       32 o128-64k-256k        35.1 ms  req     15  MB  33.79
+lat   0 zarr   random       32 o128-0-16k           33.9 ms  req     31  MB   4.29
+lat   0 zarr   random       32 o64-4k-16k           21.7 ms  req     29  MB   6.79
+lat   0 zarr   random       32 o64-16k-64k          22.5 ms  req     27  MB  14.10
+lat   0 zarr   random       32 o64-64k-256k         23.8 ms  req     15  MB  31.78
+lat   0 zarr   random       32 o32-4k-16k           25.9 ms  req     23  MB  13.82
+lat   0 zarr   random       32 o32-16k-64k          24.3 ms  req     22  MB  19.00
+lat   0 zarr   random       32 o32-64k-256k         23.1 ms  req     14  MB  32.24
+lat   0 zarr   random       32 o16-16k-64k          29.6 ms  req     18  MB  22.82
+lat   0 zarr   random     1024 u128                372.5 ms  req    802  MB  13.49
+lat   0 zarr   random     1024 u64                 251.4 ms  req    570  MB  23.25
+lat   0 zarr   random     1024 u32                 166.3 ms  req    347  MB  32.11
+lat   0 zarr   random     1024 u16                 103.1 ms  req    196  MB  37.27
+lat   0 zarr   random     1024 u8                   59.5 ms  req    102  MB  40.22
+lat   0 zarr   random     1024 o128-1k-4k          309.7 ms  req    633  MB  27.23
+lat   0 zarr   random     1024 o128-4k-16k         264.9 ms  req    320  MB  41.70
+lat   0 zarr   random     1024 o128-16k-64k        212.4 ms  req     87  MB  44.47
+lat   0 zarr   random     1024 o128-64k-256k       197.2 ms  req     21  MB  44.47
+lat   0 zarr   random     1024 o128-0-16k          268.5 ms  req    337  MB  40.87
+lat   0 zarr   random     1024 o64-4k-16k          187.5 ms  req    253  MB  39.58
+lat   0 zarr   random     1024 o64-16k-64k         159.4 ms  req     86  MB  41.46
+lat   0 zarr   random     1024 o64-64k-256k        146.8 ms  req     21  MB  41.46
+lat   0 zarr   random     1024 o32-4k-16k          123.5 ms  req    196  MB  39.54
+lat   0 zarr   random     1024 o32-16k-64k         116.9 ms  req     71  MB  40.79
+lat   0 zarr   random     1024 o32-64k-256k         93.6 ms  req     20  MB  40.81
+lat   0 zarr   random     1024 o16-16k-64k          73.4 ms  req     57  MB  40.85
+lat   0 zarr   random    16384 u128               2823.8 ms  req   6708  MB  28.46
+lat   0 zarr   random    16384 u64                1390.5 ms  req   3224  MB  35.86
+lat   0 zarr   random    16384 u32                 558.6 ms  req   1277  MB  39.06
+lat   0 zarr   random    16384 u16                 267.7 ms  req    505  MB  40.36
+lat   0 zarr   random    16384 u8                  106.8 ms  req    166  MB  40.96
+lat   0 zarr   random    16384 o128-1k-4k         2105.0 ms  req   1156  MB  44.49
+lat   0 zarr   random    16384 o128-4k-16k        2141.3 ms  req    348  MB  44.48
+lat   0 zarr   random    16384 o128-16k-64k       2092.9 ms  req     87  MB  44.47
+lat   0 zarr   random    16384 o128-64k-256k      2028.6 ms  req     21  MB  44.47
+lat   0 zarr   random    16384 o128-0-16k         2120.6 ms  req    396  MB  44.41
+lat   0 zarr   random    16384 o64-4k-16k          972.4 ms  req    275  MB  41.47
+lat   0 zarr   random    16384 o64-16k-64k         988.9 ms  req     86  MB  41.46
+lat   0 zarr   random    16384 o64-64k-256k        925.5 ms  req     21  MB  41.46
+lat   0 zarr   random    16384 o32-4k-16k          383.3 ms  req    223  MB  40.81
+lat   0 zarr   random    16384 o32-16k-64k         358.8 ms  req     73  MB  40.81
+lat   0 zarr   random    16384 o32-64k-256k        340.8 ms  req     20  MB  40.81
+lat   0 zarr   random    16384 o16-16k-64k         168.5 ms  req     60  MB  40.88
+lat   0 zarr   compact    1000 u128                 28.0 ms  req     24  MB   0.03
+lat   0 zarr   compact    1000 u64                   7.2 ms  req      8  MB   0.09
+lat   0 zarr   compact    1000 u32                   3.8 ms  req      3  MB   0.30
+lat   0 zarr   compact    1000 u16                   3.9 ms  req      1  MB   0.85
+lat   0 zarr   compact    1000 u8                    6.3 ms  req      1  MB   2.42
+lat   0 zarr   compact    1000 o128-1k-4k           25.5 ms  req      4  MB   0.18
+lat   0 zarr   compact    1000 o128-4k-16k          22.7 ms  req      3  MB   0.42
+lat   0 zarr   compact    1000 o128-16k-64k         17.0 ms  req      2  MB   0.74
+lat   0 zarr   compact    1000 o128-64k-256k        16.7 ms  req      1  MB   2.59
+lat   0 zarr   compact    1000 o128-0-16k           17.4 ms  req      3  MB   0.39
+lat   0 zarr   compact    1000 o64-4k-16k            5.1 ms  req      3  MB   0.39
+lat   0 zarr   compact    1000 o64-16k-64k           4.9 ms  req      2  MB   0.65
+lat   0 zarr   compact    1000 o64-64k-256k          6.8 ms  req      1  MB   2.45
+lat   0 zarr   compact    1000 o32-4k-16k            4.2 ms  req      3  MB   0.39
+lat   0 zarr   compact    1000 o32-16k-64k           3.7 ms  req      1  MB   0.64
+lat   0 zarr   compact    1000 o32-64k-256k          4.0 ms  req      1  MB   2.39
+lat   0 zarr   compact    1000 o16-16k-64k           3.8 ms  req      1  MB   0.85
+lat   0 zarr   cluster    1000 u128                132.4 ms  req    263  MB   0.32
+lat   0 zarr   cluster    1000 u64                  42.7 ms  req     91  MB   0.50
+lat   0 zarr   cluster    1000 u32                  19.4 ms  req     28  MB   0.60
+lat   0 zarr   cluster    1000 u16                  11.6 ms  req     10  MB   0.80
+lat   0 zarr   cluster    1000 u8                    6.2 ms  req      5  MB   1.20
+lat   0 zarr   cluster    1000 o128-1k-4k          113.4 ms  req     30  MB   1.39
+lat   0 zarr   cluster    1000 o128-4k-16k          96.1 ms  req     10  MB   1.90
+lat   0 zarr   cluster    1000 o128-16k-64k         90.3 ms  req      4  MB   2.75
+lat   0 zarr   cluster    1000 o128-64k-256k        88.8 ms  req      1  MB   3.15
+lat   0 zarr   cluster    1000 o128-0-16k           94.3 ms  req     10  MB   1.82
+lat   0 zarr   cluster    1000 o64-4k-16k           34.2 ms  req     10  MB   1.38
+lat   0 zarr   cluster    1000 o64-16k-64k          30.1 ms  req      4  MB   2.28
+lat   0 zarr   cluster    1000 o64-64k-256k         27.7 ms  req      1  MB   2.64
+lat   0 zarr   cluster    1000 o32-4k-16k           14.6 ms  req     10  MB   1.22
+lat   0 zarr   cluster    1000 o32-16k-64k          16.0 ms  req      4  MB   2.08
+lat   0 zarr   cluster    1000 o32-64k-256k         14.3 ms  req      1  MB   2.60
+lat   0 zarr   cluster    1000 o16-16k-64k           7.5 ms  req      3  MB   2.05
+lat   0 zarr   curve      1000 u128                227.4 ms  req    530  MB   1.14
+lat   0 zarr   curve      1000 u64                 122.0 ms  req    257  MB   1.47
+lat   0 zarr   curve      1000 u32                  51.5 ms  req    112  MB   1.61
+lat   0 zarr   curve      1000 u16                  23.4 ms  req     49  MB   1.67
+lat   0 zarr   curve      1000 u8                   10.6 ms  req     18  MB   1.88
+lat   0 zarr   curve      1000 o128-1k-4k          129.8 ms  req     60  MB   1.96
+lat   0 zarr   curve      1000 o128-4k-16k         123.1 ms  req     18  MB   2.12
+lat   0 zarr   curve      1000 o128-16k-64k        113.9 ms  req      7  MB   3.47
+lat   0 zarr   curve      1000 o128-64k-256k       121.4 ms  req      4  MB   9.40
+lat   0 zarr   curve      1000 o128-0-16k          120.3 ms  req     18  MB   2.12
+lat   0 zarr   curve      1000 o64-4k-16k           53.4 ms  req     18  MB   1.98
+lat   0 zarr   curve      1000 o64-16k-64k          50.9 ms  req      7  MB   3.14
+lat   0 zarr   curve      1000 o64-64k-256k         54.7 ms  req      4  MB   8.61
+lat   0 zarr   curve      1000 o32-4k-16k           25.2 ms  req     18  MB   1.91
+lat   0 zarr   curve      1000 o32-16k-64k          23.0 ms  req      7  MB   3.02
+lat   0 zarr   curve      1000 o32-64k-256k         23.7 ms  req      4  MB   8.38
+lat   0 zarr   curve      1000 o16-16k-64k          12.5 ms  req      7  MB   2.63
+lat   0 zarr   compact   10000 u128                 81.8 ms  req    134  MB   0.20
+lat   0 zarr   compact   10000 u64                  28.5 ms  req     30  MB   0.33
+lat   0 zarr   compact   10000 u32                  21.6 ms  req     12  MB   0.54
+lat   0 zarr   compact   10000 u16                  17.7 ms  req      8  MB   2.22
+lat   0 zarr   compact   10000 u8                   16.2 ms  req      2  MB   4.65
+lat   0 zarr   compact   10000 o128-1k-4k           40.5 ms  req     16  MB   0.56
+lat   0 zarr   compact   10000 o128-4k-16k          40.4 ms  req      8  MB   0.97
+lat   0 zarr   compact   10000 o128-16k-64k         39.2 ms  req      4  MB   2.16
+lat   0 zarr   compact   10000 o128-64k-256k        55.3 ms  req      3  MB   6.52
+lat   0 zarr   compact   10000 o128-0-16k           40.3 ms  req      8  MB   0.94
+lat   0 zarr   compact   10000 o64-4k-16k           19.4 ms  req      8  MB   1.06
+lat   0 zarr   compact   10000 o64-16k-64k          20.1 ms  req      4  MB   2.14
+lat   0 zarr   compact   10000 o64-64k-256k         21.4 ms  req      3  MB   6.59
+lat   0 zarr   compact   10000 o32-4k-16k           21.8 ms  req      6  MB   1.08
+lat   0 zarr   compact   10000 o32-16k-64k          18.7 ms  req      4  MB   2.18
+lat   0 zarr   compact   10000 o32-64k-256k         18.1 ms  req      2  MB   6.52
+lat   0 zarr   compact   10000 o16-16k-64k          14.0 ms  req      2  MB   2.22
+lat   0 zarr   cluster   10000 u128               1033.7 ms  req   2593  MB   1.28
+lat   0 zarr   cluster   10000 u64                 225.9 ms  req    590  MB   1.27
+lat   0 zarr   cluster   10000 u32                  69.2 ms  req    125  MB   1.29
+lat   0 zarr   cluster   10000 u16                  26.9 ms  req     30  MB   1.34
+lat   0 zarr   cluster   10000 u8                   18.2 ms  req     10  MB   1.69
+lat   0 zarr   cluster   10000 o128-1k-4k          601.9 ms  req     52  MB   2.06
+lat   0 zarr   cluster   10000 o128-4k-16k         609.4 ms  req     18  MB   2.66
+lat   0 zarr   cluster   10000 o128-16k-64k        649.2 ms  req      9  MB   6.32
+lat   0 zarr   cluster   10000 o128-64k-256k       594.9 ms  req      6  MB  13.05
+lat   0 zarr   cluster   10000 o128-0-16k          607.3 ms  req     18  MB   2.62
+lat   0 zarr   cluster   10000 o64-4k-16k          113.3 ms  req     18  MB   2.20
+lat   0 zarr   cluster   10000 o64-16k-64k         129.4 ms  req      9  MB   5.33
+lat   0 zarr   cluster   10000 o64-64k-256k        116.4 ms  req      6  MB  11.44
+lat   0 zarr   cluster   10000 o32-4k-16k           41.8 ms  req     18  MB   2.04
+lat   0 zarr   cluster   10000 o32-16k-64k          49.1 ms  req      9  MB   4.68
+lat   0 zarr   cluster   10000 o32-64k-256k         49.9 ms  req      6  MB  11.01
+lat   0 zarr   cluster   10000 o16-16k-64k          24.6 ms  req      7  MB   3.83
+lat   0 zarr   curve     10000 u128                659.5 ms  req   1700  MB   1.56
+lat   0 zarr   curve     10000 u64                 242.7 ms  req    626  MB   1.62
+lat   0 zarr   curve     10000 u32                 100.8 ms  req    204  MB   1.65
+lat   0 zarr   curve     10000 u16                  44.4 ms  req     74  MB   1.90
+lat   0 zarr   curve     10000 u8                   28.4 ms  req     29  MB   3.67
+lat   0 zarr   curve     10000 o128-1k-4k          394.3 ms  req     73  MB   2.78
+lat   0 zarr   curve     10000 o128-4k-16k         368.9 ms  req     26  MB   3.94
+lat   0 zarr   curve     10000 o128-16k-64k        378.1 ms  req     13  MB   7.17
+lat   0 zarr   curve     10000 o128-64k-256k       366.4 ms  req      8  MB  19.00
+lat   0 zarr   curve     10000 o128-0-16k          372.7 ms  req     28  MB   3.77
+lat   0 zarr   curve     10000 o64-4k-16k          130.2 ms  req     26  MB   3.27
+lat   0 zarr   curve     10000 o64-16k-64k         129.9 ms  req     13  MB   6.12
+lat   0 zarr   curve     10000 o64-64k-256k        126.0 ms  req      8  MB  16.47
+lat   0 zarr   curve     10000 o32-4k-16k           52.6 ms  req     26  MB   2.86
+lat   0 zarr   curve     10000 o32-16k-64k          50.9 ms  req     13  MB   5.63
+lat   0 zarr   curve     10000 o32-64k-256k         50.9 ms  req      8  MB  15.68
+lat   0 zarr   curve     10000 o16-16k-64k          32.9 ms  req     13  MB   5.71
+lat   0 zarr   box-dens   15.6 u128                 28.8 ms  req     27
+lat   0 zarr   box-dens   15.6 u64                   7.3 ms  req      8
+lat   0 zarr   box-dens   15.6 u32                   5.4 ms  req      4
+lat   0 zarr   box-dens   15.6 u16                   4.4 ms  req      2
+lat   0 zarr   box-dens   15.6 u8                   21.4 ms  req      1
+lat   0 zarr   box-dens   15.6 o128-1k-4k           19.3 ms  req      8
+lat   0 zarr   box-dens   15.6 o128-4k-16k          18.4 ms  req      3
+lat   0 zarr   box-dens   15.6 o128-16k-64k         16.9 ms  req      2
+lat   0 zarr   box-dens   15.6 o128-64k-256k        17.7 ms  req      2
+lat   0 zarr   box-dens   15.6 o128-0-16k           17.6 ms  req      2
+lat   0 zarr   box-dens   15.6 o64-4k-16k            5.7 ms  req      3
+lat   0 zarr   box-dens   15.6 o64-16k-64k           4.8 ms  req      2
+lat   0 zarr   box-dens   15.6 o64-64k-256k          5.6 ms  req      2
+lat   0 zarr   box-dens   15.6 o32-4k-16k            4.0 ms  req      2
+lat   0 zarr   box-dens   15.6 o32-16k-64k           3.9 ms  req      2
+lat   0 zarr   box-dens   15.6 o32-64k-256k          4.7 ms  req      2
+lat   0 zarr   box-dens   15.6 o16-16k-64k           4.8 ms  req      2
+lat   0 zarr   box-unif   15.6 u128                  0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 u64                   0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 u32                   0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 u16                   0.9 ms  req      1
+lat   0 zarr   box-unif   15.6 u8                    1.0 ms  req      1
+lat   0 zarr   box-unif   15.6 o128-1k-4k            0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o128-4k-16k           0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o128-16k-64k          0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o128-64k-256k         0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o128-0-16k            0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o64-4k-16k            0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o64-16k-64k           0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o64-64k-256k          0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o32-4k-16k            0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o32-16k-64k           0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o32-64k-256k          0.0 ms  req      0
+lat   0 zarr   box-unif   15.6 o16-16k-64k           1.0 ms  req      1
+lat   0 zarr   box-dens   62.5 u128                323.9 ms  req    718
+lat   0 zarr   box-dens   62.5 u64                  81.7 ms  req    124
+lat   0 zarr   box-dens   62.5 u32                  49.4 ms  req     27
+lat   0 zarr   box-dens   62.5 u16                  53.0 ms  req      8
+lat   0 zarr   box-dens   62.5 u8                   45.4 ms  req      4
+lat   0 zarr   box-dens   62.5 o128-1k-4k          196.0 ms  req    193
+lat   0 zarr   box-dens   62.5 o128-4k-16k         196.9 ms  req     99
+lat   0 zarr   box-dens   62.5 o128-16k-64k        179.8 ms  req     25
+lat   0 zarr   box-dens   62.5 o128-64k-256k       155.9 ms  req      7
+lat   0 zarr   box-dens   62.5 o128-0-16k          187.8 ms  req    102
+lat   0 zarr   box-dens   62.5 o64-4k-16k           73.8 ms  req     40
+lat   0 zarr   box-dens   62.5 o64-16k-64k          74.9 ms  req     24
+lat   0 zarr   box-dens   62.5 o64-64k-256k         73.4 ms  req      7
+lat   0 zarr   box-dens   62.5 o32-4k-16k           52.9 ms  req     16
+lat   0 zarr   box-dens   62.5 o32-16k-64k          50.8 ms  req     11
+lat   0 zarr   box-dens   62.5 o32-64k-256k         52.2 ms  req      6
+lat   0 zarr   box-dens   62.5 o16-16k-64k          56.3 ms  req      5
+lat   0 zarr   box-unif   62.5 u128                  0.0 ms  req      0
+lat   0 zarr   box-unif   62.5 u64                   2.0 ms  req      1
+lat   0 zarr   box-unif   62.5 u32                   1.6 ms  req      2
+lat   0 zarr   box-unif   62.5 u16                   4.2 ms  req      6
+lat   0 zarr   box-unif   62.5 u8                    2.2 ms  req      2
+lat   0 zarr   box-unif   62.5 o128-1k-4k            0.0 ms  req      0
+lat   0 zarr   box-unif   62.5 o128-4k-16k           0.1 ms  req      0
+lat   0 zarr   box-unif   62.5 o128-16k-64k          0.0 ms  req      0
+lat   0 zarr   box-unif   62.5 o128-64k-256k         0.0 ms  req      0
+lat   0 zarr   box-unif   62.5 o128-0-16k            0.0 ms  req      0
+lat   0 zarr   box-unif   62.5 o64-4k-16k            2.1 ms  req      1
+lat   0 zarr   box-unif   62.5 o64-16k-64k           2.1 ms  req      1
+lat   0 zarr   box-unif   62.5 o64-64k-256k          2.6 ms  req      1
+lat   0 zarr   box-unif   62.5 o32-4k-16k            2.0 ms  req      1
+lat   0 zarr   box-unif   62.5 o32-16k-64k           2.2 ms  req      1
+lat   0 zarr   box-unif   62.5 o32-64k-256k          2.4 ms  req      1
+lat   0 zarr   box-unif   62.5 o16-16k-64k           3.6 ms  req      1
+lat   0 zarr   box-dens  125.0 u128                675.3 ms  req   1862
+lat   0 zarr   box-dens  125.0 u64                 212.9 ms  req    413
+lat   0 zarr   box-dens  125.0 u32                  59.8 ms  req    108
+lat   0 zarr   box-dens  125.0 u16                  16.2 ms  req     25
+lat   0 zarr   box-dens  125.0 u8                   12.6 ms  req      8
+lat   0 zarr   box-dens  125.0 o128-1k-4k          478.6 ms  req     55
+lat   0 zarr   box-dens  125.0 o128-4k-16k         504.8 ms  req     18
+lat   0 zarr   box-dens  125.0 o128-16k-64k        431.2 ms  req      6
+lat   0 zarr   box-dens  125.0 o128-64k-256k       429.0 ms  req      2
+lat   0 zarr   box-dens  125.0 o128-0-16k          476.4 ms  req     23
+lat   0 zarr   box-dens  125.0 o64-4k-16k          116.9 ms  req     15
+lat   0 zarr   box-dens  125.0 o64-16k-64k         113.6 ms  req      6
+lat   0 zarr   box-dens  125.0 o64-64k-256k        107.0 ms  req      2
+lat   0 zarr   box-dens  125.0 o32-4k-16k           32.2 ms  req     11
+lat   0 zarr   box-dens  125.0 o32-16k-64k          50.2 ms  req      6
+lat   0 zarr   box-dens  125.0 o32-64k-256k         37.3 ms  req      2
+lat   0 zarr   box-dens  125.0 o16-16k-64k          34.8 ms  req      4
+lat   0 zarr   box-unif  125.0 u128                 23.9 ms  req     36
+lat   0 zarr   box-unif  125.0 u64                  20.8 ms  req     47
+lat   0 zarr   box-unif  125.0 u32                  17.6 ms  req     42
+lat   0 zarr   box-unif  125.0 u16                   9.5 ms  req     22
+lat   0 zarr   box-unif  125.0 u8                    9.4 ms  req      8
+lat   0 zarr   box-unif  125.0 o128-1k-4k           24.8 ms  req      8
+lat   0 zarr   box-unif  125.0 o128-4k-16k          24.7 ms  req      7
+lat   0 zarr   box-unif  125.0 o128-16k-64k         25.6 ms  req      5
+lat   0 zarr   box-unif  125.0 o128-64k-256k        25.1 ms  req      3
+lat   0 zarr   box-unif  125.0 o128-0-16k           24.1 ms  req      7
+lat   0 zarr   box-unif  125.0 o64-4k-16k           11.4 ms  req      8
+lat   0 zarr   box-unif  125.0 o64-16k-64k          11.8 ms  req      5
+lat   0 zarr   box-unif  125.0 o64-64k-256k         11.9 ms  req      3
+lat   0 zarr   box-unif  125.0 o32-4k-16k            8.8 ms  req      8
+lat   0 zarr   box-unif  125.0 o32-16k-64k           8.6 ms  req      5
+lat   0 zarr   box-unif  125.0 o32-64k-256k          9.1 ms  req      3
+lat   0 zarr   box-unif  125.0 o16-16k-64k           7.5 ms  req      5
+lat   0 zarr   box-dens  250.0 u128               4204.5 ms  req  10610
+lat   0 zarr   box-dens  250.0 u64                1122.9 ms  req   2978
+lat   0 zarr   box-dens  250.0 u32                 282.4 ms  req    656
+lat   0 zarr   box-dens  250.0 u16                  75.1 ms  req    124
+lat   0 zarr   box-dens  250.0 u8                   43.2 ms  req     27
+lat   0 zarr   box-dens  250.0 o128-1k-4k         2862.2 ms  req    143
+lat   0 zarr   box-dens  250.0 o128-4k-16k        2859.2 ms  req     45
+lat   0 zarr   box-dens  250.0 o128-16k-64k       2962.0 ms  req     13
+lat   0 zarr   box-dens  250.0 o128-64k-256k      3036.8 ms  req      6
+lat   0 zarr   box-dens  250.0 o128-0-16k         2981.1 ms  req     49
+lat   0 zarr   box-dens  250.0 o64-4k-16k          687.6 ms  req     45
+lat   0 zarr   box-dens  250.0 o64-16k-64k         697.4 ms  req     13
+lat   0 zarr   box-dens  250.0 o64-64k-256k        706.1 ms  req      6
+lat   0 zarr   box-dens  250.0 o32-4k-16k          133.7 ms  req     43
+lat   0 zarr   box-dens  250.0 o32-16k-64k         149.5 ms  req     13
+lat   0 zarr   box-dens  250.0 o32-64k-256k        138.4 ms  req      6
+lat   0 zarr   box-dens  250.0 o16-16k-64k          51.8 ms  req     12
+lat   0 zarr   box-unif  250.0 u128                531.7 ms  req   1229
+lat   0 zarr   box-unif  250.0 u64                 215.0 ms  req    519
+lat   0 zarr   box-unif  250.0 u32                  91.1 ms  req    204
+lat   0 zarr   box-unif  250.0 u16                  23.4 ms  req     49
+lat   0 zarr   box-unif  250.0 u8                   23.3 ms  req     12
+lat   0 zarr   box-unif  250.0 o128-1k-4k          262.3 ms  req      6
+lat   0 zarr   box-unif  250.0 o128-4k-16k         259.5 ms  req      6
+lat   0 zarr   box-unif  250.0 o128-16k-64k        248.0 ms  req      4
+lat   0 zarr   box-unif  250.0 o128-64k-256k       264.4 ms  req      3
+lat   0 zarr   box-unif  250.0 o128-0-16k          258.5 ms  req      6
+lat   0 zarr   box-unif  250.0 o64-4k-16k          122.4 ms  req      6
+lat   0 zarr   box-unif  250.0 o64-16k-64k         117.7 ms  req      4
+lat   0 zarr   box-unif  250.0 o64-64k-256k        125.9 ms  req      3
+lat   0 zarr   box-unif  250.0 o32-4k-16k           37.6 ms  req      5
+lat   0 zarr   box-unif  250.0 o32-16k-64k          37.2 ms  req      4
+lat   0 zarr   box-unif  250.0 o32-64k-256k         37.6 ms  req      3
+lat   0 zarr   box-unif  250.0 o16-16k-64k          11.9 ms  req      4
+lat  20 direct random        1 u128                 21.8 ms  req      1  MB   0.02
+lat  20 direct random        1 u64                  23.0 ms  req      1  MB   0.14
+lat  20 direct random        1 u32                  25.4 ms  req      1  MB   0.34
+lat  20 direct random        1 u16                  43.6 ms  req      1  MB   1.87
+lat  20 direct random        1 u8                   48.9 ms  req      1  MB   2.22
+lat  20 direct random        1 o128-1k-4k           22.0 ms  req      1  MB   0.05
+lat  20 direct random        1 o128-4k-16k          23.0 ms  req      1  MB   0.14
+lat  20 direct random        1 o128-16k-64k         27.1 ms  req      1  MB   0.54
+lat  20 direct random        1 o128-64k-256k        49.7 ms  req      1  MB   2.73
+lat  20 direct random        1 o128-0-16k           23.1 ms  req      1  MB   0.14
+lat  20 direct random        1 o64-4k-16k           24.4 ms  req      1  MB   0.18
+lat  20 direct random        1 o64-16k-64k          26.6 ms  req      1  MB   0.47
+lat  20 direct random        1 o64-64k-256k         48.6 ms  req      1  MB   2.58
+lat  20 direct random        1 o32-4k-16k           45.9 ms  req      1  MB   0.35
+lat  20 direct random        1 o32-16k-64k          46.2 ms  req      1  MB   0.64
+lat  20 direct random        1 o32-64k-256k         48.0 ms  req      1  MB   2.50
+lat  20 direct random        1 o16-16k-64k          67.2 ms  req      1  MB   1.87
+lat  20 direct random       32 u128                 31.7 ms  req     32  MB   0.91
+lat  20 direct random       32 u64                  44.4 ms  req     30  MB   5.06
+lat  20 direct random       32 u32                  98.4 ms  req     24  MB  12.93
+lat  20 direct random       32 u16                 145.4 ms  req     19  MB  19.81
+lat  20 direct random       32 u8                  147.1 ms  req     16  MB  23.32
+lat  20 direct random       32 o128-1k-4k           33.5 ms  req     32  MB   1.50
+lat  20 direct random       32 o128-4k-16k          34.0 ms  req     31  MB   4.46
+lat  20 direct random       32 o128-16k-64k         37.4 ms  req     27  MB  14.90
+lat  20 direct random       32 o128-64k-256k        58.6 ms  req     15  MB  33.79
+lat  20 direct random       32 o128-0-16k           34.3 ms  req     31  MB   4.29
+lat  20 direct random       32 o64-4k-16k           45.7 ms  req     29  MB   6.79
+lat  20 direct random       32 o64-16k-64k          45.1 ms  req     27  MB  14.10
+lat  20 direct random       32 o64-64k-256k         61.9 ms  req     15  MB  31.78
+lat  20 direct random       32 o32-4k-16k           98.2 ms  req     23  MB  13.82
+lat  20 direct random       32 o32-16k-64k          98.2 ms  req     22  MB  19.00
+lat  20 direct random       32 o32-64k-256k         96.0 ms  req     14  MB  32.24
+lat  20 direct random       32 o16-16k-64k         145.6 ms  req     18  MB  22.82
+lat  20 direct random     1024 u128                250.6 ms  req    802  MB  13.49
+lat  20 direct random     1024 u64                 191.8 ms  req    570  MB  23.25
+lat  20 direct random     1024 u32                 146.1 ms  req    347  MB  32.11
+lat  20 direct random     1024 u16                 171.5 ms  req    196  MB  37.27
+lat  20 direct random     1024 u8                  168.3 ms  req    102  MB  40.22
+lat  20 direct random     1024 o128-1k-4k          242.0 ms  req    633  MB  27.23
+lat  20 direct random     1024 o128-4k-16k         172.8 ms  req    320  MB  41.70
+lat  20 direct random     1024 o128-16k-64k        115.0 ms  req     87  MB  44.47
+lat  20 direct random     1024 o128-64k-256k       113.5 ms  req     21  MB  44.47
+lat  20 direct random     1024 o128-0-16k          182.7 ms  req    337  MB  40.87
+lat  20 direct random     1024 o64-4k-16k          141.6 ms  req    253  MB  39.58
+lat  20 direct random     1024 o64-16k-64k         101.8 ms  req     86  MB  41.46
+lat  20 direct random     1024 o64-64k-256k         97.1 ms  req     21  MB  41.46
+lat  20 direct random     1024 o32-4k-16k          149.1 ms  req    196  MB  39.54
+lat  20 direct random     1024 o32-16k-64k         133.8 ms  req     71  MB  40.79
+lat  20 direct random     1024 o32-64k-256k        116.1 ms  req     20  MB  40.81
+lat  20 direct random     1024 o16-16k-64k         166.0 ms  req     57  MB  40.85
+lat  20 direct random    16384 u128               1666.4 ms  req   6708  MB  28.46
+lat  20 direct random    16384 u64                 846.4 ms  req   3224  MB  35.86
+lat  20 direct random    16384 u32                 383.0 ms  req   1277  MB  39.06
+lat  20 direct random    16384 u16                 225.5 ms  req    505  MB  40.36
+lat  20 direct random    16384 u8                  187.9 ms  req    166  MB  40.96
+lat  20 direct random    16384 o128-1k-4k          527.8 ms  req   1156  MB  44.49
+lat  20 direct random    16384 o128-4k-16k         358.1 ms  req    348  MB  44.48
+lat  20 direct random    16384 o128-16k-64k        303.8 ms  req     87  MB  44.47
+lat  20 direct random    16384 o128-64k-256k       307.9 ms  req     21  MB  44.47
+lat  20 direct random    16384 o128-0-16k          371.7 ms  req    396  MB  44.41
+lat  20 direct random    16384 o64-4k-16k          240.8 ms  req    275  MB  41.47
+lat  20 direct random    16384 o64-16k-64k         199.4 ms  req     86  MB  41.46
+lat  20 direct random    16384 o64-64k-256k        191.1 ms  req     21  MB  41.46
+lat  20 direct random    16384 o32-4k-16k          199.3 ms  req    223  MB  40.81
+lat  20 direct random    16384 o32-16k-64k         179.4 ms  req     73  MB  40.81
+lat  20 direct random    16384 o32-64k-256k        157.6 ms  req     20  MB  40.81
+lat  20 direct random    16384 o16-16k-64k         188.5 ms  req     60  MB  40.88
+lat  20 direct compact    1000 u128                 27.4 ms  req     24  MB   0.03
+lat  20 direct compact    1000 u64                  24.7 ms  req      8  MB   0.09
+lat  20 direct compact    1000 u32                  24.8 ms  req      3  MB   0.30
+lat  20 direct compact    1000 u16                  33.1 ms  req      1  MB   0.85
+lat  20 direct compact    1000 u8                   51.1 ms  req      1  MB   2.42
+lat  20 direct compact    1000 o128-1k-4k           24.8 ms  req      4  MB   0.18
+lat  20 direct compact    1000 o128-4k-16k          25.7 ms  req      3  MB   0.42
+lat  20 direct compact    1000 o128-16k-64k         29.4 ms  req      2  MB   0.74
+lat  20 direct compact    1000 o128-64k-256k        48.3 ms  req      1  MB   2.59
+lat  20 direct compact    1000 o128-0-16k           25.7 ms  req      3  MB   0.39
+lat  20 direct compact    1000 o64-4k-16k           25.2 ms  req      3  MB   0.39
+lat  20 direct compact    1000 o64-16k-64k          29.1 ms  req      2  MB   0.65
+lat  20 direct compact    1000 o64-64k-256k         48.2 ms  req      1  MB   2.45
+lat  20 direct compact    1000 o32-4k-16k           25.3 ms  req      3  MB   0.39
+lat  20 direct compact    1000 o32-16k-64k          28.9 ms  req      1  MB   0.64
+lat  20 direct compact    1000 o32-64k-256k         47.5 ms  req      1  MB   2.39
+lat  20 direct compact    1000 o16-16k-64k          33.5 ms  req      1  MB   0.85
+lat  20 direct cluster    1000 u128                110.6 ms  req    263  MB   0.32
+lat  20 direct cluster    1000 u64                  68.9 ms  req     91  MB   0.50
+lat  20 direct cluster    1000 u32                  38.6 ms  req     28  MB   0.60
+lat  20 direct cluster    1000 u16                  29.5 ms  req     10  MB   0.80
+lat  20 direct cluster    1000 u8                   31.0 ms  req      5  MB   1.20
+lat  20 direct cluster    1000 o128-1k-4k           59.9 ms  req     30  MB   1.39
+lat  20 direct cluster    1000 o128-4k-16k          53.6 ms  req     10  MB   1.90
+lat  20 direct cluster    1000 o128-16k-64k         60.9 ms  req      4  MB   2.75
+lat  20 direct cluster    1000 o128-64k-256k        77.3 ms  req      1  MB   3.15
+lat  20 direct cluster    1000 o128-0-16k           52.6 ms  req     10  MB   1.82
+lat  20 direct cluster    1000 o64-4k-16k           37.0 ms  req     10  MB   1.38
+lat  20 direct cluster    1000 o64-16k-64k          39.6 ms  req      4  MB   2.28
+lat  20 direct cluster    1000 o64-64k-256k         56.6 ms  req      1  MB   2.64
+lat  20 direct cluster    1000 o32-4k-16k           30.9 ms  req     10  MB   1.22
+lat  20 direct cluster    1000 o32-16k-64k          34.1 ms  req      4  MB   2.08
+lat  20 direct cluster    1000 o32-64k-256k         50.7 ms  req      1  MB   2.60
+lat  20 direct cluster    1000 o16-16k-64k          31.9 ms  req      3  MB   2.05
+lat  20 direct curve      1000 u128                151.5 ms  req    530  MB   1.14
+lat  20 direct curve      1000 u64                  87.7 ms  req    257  MB   1.47
+lat  20 direct curve      1000 u32                  50.5 ms  req    112  MB   1.61
+lat  20 direct curve      1000 u16                  36.7 ms  req     49  MB   1.67
+lat  20 direct curve      1000 u8                   32.3 ms  req     18  MB   1.88
+lat  20 direct curve      1000 o128-1k-4k           65.3 ms  req     60  MB   1.96
+lat  20 direct curve      1000 o128-4k-16k          56.3 ms  req     18  MB   2.12
+lat  20 direct curve      1000 o128-16k-64k         51.2 ms  req      7  MB   3.47
+lat  20 direct curve      1000 o128-64k-256k        75.1 ms  req      4  MB   9.40
+lat  20 direct curve      1000 o128-0-16k           54.2 ms  req     18  MB   2.12
+lat  20 direct curve      1000 o64-4k-16k           42.3 ms  req     18  MB   1.98
+lat  20 direct curve      1000 o64-16k-64k          41.9 ms  req      7  MB   3.14
+lat  20 direct curve      1000 o64-64k-256k         62.3 ms  req      4  MB   8.61
+lat  20 direct curve      1000 o32-4k-16k           36.0 ms  req     18  MB   1.91
+lat  20 direct curve      1000 o32-16k-64k          36.9 ms  req      7  MB   3.02
+lat  20 direct curve      1000 o32-64k-256k         56.7 ms  req      4  MB   8.38
+lat  20 direct curve      1000 o16-16k-64k          34.5 ms  req      7  MB   2.63
+lat  20 direct compact   10000 u128                 63.7 ms  req    134  MB   0.20
+lat  20 direct compact   10000 u64                  45.0 ms  req     30  MB   0.33
+lat  20 direct compact   10000 u32                  39.4 ms  req     12  MB   0.54
+lat  20 direct compact   10000 u16                  56.6 ms  req      8  MB   2.22
+lat  20 direct compact   10000 u8                   89.4 ms  req      2  MB   4.65
+lat  20 direct compact   10000 o128-1k-4k           45.7 ms  req     16  MB   0.56
+lat  20 direct compact   10000 o128-4k-16k          43.6 ms  req      8  MB   0.97
+lat  20 direct compact   10000 o128-16k-64k         47.7 ms  req      4  MB   2.16
+lat  20 direct compact   10000 o128-64k-256k        67.2 ms  req      3  MB   6.52
+lat  20 direct compact   10000 o128-0-16k           43.5 ms  req      8  MB   0.94
+lat  20 direct compact   10000 o64-4k-16k           39.6 ms  req      8  MB   1.06
+lat  20 direct compact   10000 o64-16k-64k          44.9 ms  req      4  MB   2.14
+lat  20 direct compact   10000 o64-64k-256k         62.9 ms  req      3  MB   6.59
+lat  20 direct compact   10000 o32-4k-16k           38.1 ms  req      6  MB   1.08
+lat  20 direct compact   10000 o32-16k-64k          42.3 ms  req      4  MB   2.18
+lat  20 direct compact   10000 o32-64k-256k         61.8 ms  req      2  MB   6.52
+lat  20 direct compact   10000 o16-16k-64k          56.4 ms  req      2  MB   2.22
+lat  20 direct cluster   10000 u128                663.6 ms  req   2593  MB   1.28
+lat  20 direct cluster   10000 u64                 176.1 ms  req    590  MB   1.27
+lat  20 direct cluster   10000 u32                  62.6 ms  req    125  MB   1.29
+lat  20 direct cluster   10000 u16                  45.7 ms  req     30  MB   1.34
+lat  20 direct cluster   10000 u8                   47.9 ms  req     10  MB   1.69
+lat  20 direct cluster   10000 o128-1k-4k          126.0 ms  req     52  MB   2.06
+lat  20 direct cluster   10000 o128-4k-16k         147.5 ms  req     18  MB   2.66
+lat  20 direct cluster   10000 o128-16k-64k        131.4 ms  req      9  MB   6.32
+lat  20 direct cluster   10000 o128-64k-256k       129.6 ms  req      6  MB  13.05
+lat  20 direct cluster   10000 o128-0-16k          110.2 ms  req     18  MB   2.62
+lat  20 direct cluster   10000 o64-4k-16k           62.8 ms  req     18  MB   2.20
+lat  20 direct cluster   10000 o64-16k-64k          68.3 ms  req      9  MB   5.33
+lat  20 direct cluster   10000 o64-64k-256k         83.9 ms  req      6  MB  11.44
+lat  20 direct cluster   10000 o32-4k-16k           49.3 ms  req     18  MB   2.04
+lat  20 direct cluster   10000 o32-16k-64k          49.3 ms  req      9  MB   4.68
+lat  20 direct cluster   10000 o32-64k-256k         67.4 ms  req      6  MB  11.01
+lat  20 direct cluster   10000 o16-16k-64k          44.4 ms  req      7  MB   3.83
+lat  20 direct curve     10000 u128                443.1 ms  req   1700  MB   1.56
+lat  20 direct curve     10000 u64                 193.5 ms  req    626  MB   1.62
+lat  20 direct curve     10000 u32                  90.0 ms  req    204  MB   1.65
+lat  20 direct curve     10000 u16                  54.0 ms  req     74  MB   1.90
+lat  20 direct curve     10000 u8                   50.7 ms  req     29  MB   3.67
+lat  20 direct curve     10000 o128-1k-4k          130.8 ms  req     73  MB   2.78
+lat  20 direct curve     10000 o128-4k-16k         113.3 ms  req     26  MB   3.94
+lat  20 direct curve     10000 o128-16k-64k        118.9 ms  req     13  MB   7.17
+lat  20 direct curve     10000 o128-64k-256k       136.0 ms  req      8  MB  19.00
+lat  20 direct curve     10000 o128-0-16k          115.5 ms  req     28  MB   3.77
+lat  20 direct curve     10000 o64-4k-16k           68.3 ms  req     26  MB   3.27
+lat  20 direct curve     10000 o64-16k-64k          68.2 ms  req     13  MB   6.12
+lat  20 direct curve     10000 o64-64k-256k         84.9 ms  req      8  MB  16.47
+lat  20 direct curve     10000 o32-4k-16k           53.3 ms  req     26  MB   2.86
+lat  20 direct curve     10000 o32-16k-64k          52.0 ms  req     13  MB   5.63
+lat  20 direct curve     10000 o32-64k-256k         70.7 ms  req      8  MB  15.68
+lat  20 direct curve     10000 o16-16k-64k          48.0 ms  req     13  MB   5.71
+lat  20 direct box-dens   15.6 u128                 27.3 ms  req     27
+lat  20 direct box-dens   15.6 u64                  25.2 ms  req      8
+lat  20 direct box-dens   15.6 u32                  27.9 ms  req      4
+lat  20 direct box-dens   15.6 u16                  31.8 ms  req      2
+lat  20 direct box-dens   15.6 u8                   84.8 ms  req      1
+lat  20 direct box-dens   15.6 o128-1k-4k           25.4 ms  req      8
+lat  20 direct box-dens   15.6 o128-4k-16k          25.3 ms  req      3
+lat  20 direct box-dens   15.6 o128-16k-64k         29.6 ms  req      2
+lat  20 direct box-dens   15.6 o128-64k-256k        49.4 ms  req      2
+lat  20 direct box-dens   15.6 o128-0-16k           25.4 ms  req      2
+lat  20 direct box-dens   15.6 o64-4k-16k           25.9 ms  req      3
+lat  20 direct box-dens   15.6 o64-16k-64k          29.8 ms  req      2
+lat  20 direct box-dens   15.6 o64-64k-256k         48.6 ms  req      2
+lat  20 direct box-dens   15.6 o32-4k-16k           28.6 ms  req      2
+lat  20 direct box-dens   15.6 o32-16k-64k          30.6 ms  req      2
+lat  20 direct box-dens   15.6 o32-64k-256k         48.7 ms  req      2
+lat  20 direct box-dens   15.6 o16-16k-64k          32.1 ms  req      2
+lat  20 direct box-unif   15.6 u128                  0.0 ms  req      0
+lat  20 direct box-unif   15.6 u64                   0.0 ms  req      0
+lat  20 direct box-unif   15.6 u32                   0.0 ms  req      0
+lat  20 direct box-unif   15.6 u16                  20.7 ms  req      1
+lat  20 direct box-unif   15.6 u8                   20.8 ms  req      1
+lat  20 direct box-unif   15.6 o128-1k-4k            0.0 ms  req      0
+lat  20 direct box-unif   15.6 o128-4k-16k           0.0 ms  req      0
+lat  20 direct box-unif   15.6 o128-16k-64k          0.0 ms  req      0
+lat  20 direct box-unif   15.6 o128-64k-256k         0.0 ms  req      0
+lat  20 direct box-unif   15.6 o128-0-16k            0.0 ms  req      0
+lat  20 direct box-unif   15.6 o64-4k-16k            0.0 ms  req      0
+lat  20 direct box-unif   15.6 o64-16k-64k           0.0 ms  req      0
+lat  20 direct box-unif   15.6 o64-64k-256k          0.0 ms  req      0
+lat  20 direct box-unif   15.6 o32-4k-16k            0.0 ms  req      0
+lat  20 direct box-unif   15.6 o32-16k-64k           0.0 ms  req      0
+lat  20 direct box-unif   15.6 o32-64k-256k          0.1 ms  req      0
+lat  20 direct box-unif   15.6 o16-16k-64k          25.0 ms  req      1
+lat  20 direct box-dens   62.5 u128                207.6 ms  req    718
+lat  20 direct box-dens   62.5 u64                  92.2 ms  req    124
+lat  20 direct box-dens   62.5 u32                 116.9 ms  req     27
+lat  20 direct box-dens   62.5 u16                 153.2 ms  req      8
+lat  20 direct box-dens   62.5 u8                  153.4 ms  req      4
+lat  20 direct box-dens   62.5 o128-1k-4k          131.1 ms  req    193
+lat  20 direct box-dens   62.5 o128-4k-16k         108.6 ms  req     99
+lat  20 direct box-dens   62.5 o128-16k-64k         92.9 ms  req     25
+lat  20 direct box-dens   62.5 o128-64k-256k       104.5 ms  req      7
+lat  20 direct box-dens   62.5 o128-0-16k          108.9 ms  req    102
+lat  20 direct box-dens   62.5 o64-4k-16k           83.0 ms  req     40
+lat  20 direct box-dens   62.5 o64-16k-64k          79.9 ms  req     24
+lat  20 direct box-dens   62.5 o64-64k-256k         94.9 ms  req      7
+lat  20 direct box-dens   62.5 o32-4k-16k          116.1 ms  req     16
+lat  20 direct box-dens   62.5 o32-16k-64k         115.0 ms  req     11
+lat  20 direct box-dens   62.5 o32-64k-256k        114.1 ms  req      6
+lat  20 direct box-dens   62.5 o16-16k-64k         153.3 ms  req      5
+lat  20 direct box-unif   62.5 u128                  0.0 ms  req      0
+lat  20 direct box-unif   62.5 u64                  20.6 ms  req      1
+lat  20 direct box-unif   62.5 u32                  22.0 ms  req      2
+lat  20 direct box-unif   62.5 u16                  22.5 ms  req      6
+lat  20 direct box-unif   62.5 u8                   22.6 ms  req      2
+lat  20 direct box-unif   62.5 o128-1k-4k            0.1 ms  req      0
+lat  20 direct box-unif   62.5 o128-4k-16k           0.1 ms  req      0
+lat  20 direct box-unif   62.5 o128-16k-64k          0.0 ms  req      0
+lat  20 direct box-unif   62.5 o128-64k-256k         0.0 ms  req      0
+lat  20 direct box-unif   62.5 o128-0-16k            0.0 ms  req      0
+lat  20 direct box-unif   62.5 o64-4k-16k           21.8 ms  req      1
+lat  20 direct box-unif   62.5 o64-16k-64k          25.8 ms  req      1
+lat  20 direct box-unif   62.5 o64-64k-256k         39.0 ms  req      1
+lat  20 direct box-unif   62.5 o32-4k-16k           22.9 ms  req      1
+lat  20 direct box-unif   62.5 o32-16k-64k          26.2 ms  req      1
+lat  20 direct box-unif   62.5 o32-64k-256k         46.5 ms  req      1
+lat  20 direct box-unif   62.5 o16-16k-64k          28.4 ms  req      1
+lat  20 direct box-dens  125.0 u128                514.1 ms  req   1862
+lat  20 direct box-dens  125.0 u64                 172.0 ms  req    413
+lat  20 direct box-dens  125.0 u32                  64.0 ms  req    108
+lat  20 direct box-dens  125.0 u16                  51.4 ms  req     25
+lat  20 direct box-dens  125.0 u8                   53.1 ms  req      8
+lat  20 direct box-dens  125.0 o128-1k-4k          148.1 ms  req     55
+lat  20 direct box-dens  125.0 o128-4k-16k         112.4 ms  req     18
+lat  20 direct box-dens  125.0 o128-16k-64k        104.5 ms  req      6
+lat  20 direct box-dens  125.0 o128-64k-256k       142.2 ms  req      2
+lat  20 direct box-dens  125.0 o128-0-16k          138.1 ms  req     23
+lat  20 direct box-dens  125.0 o64-4k-16k           52.4 ms  req     15
+lat  20 direct box-dens  125.0 o64-16k-64k          72.9 ms  req      6
+lat  20 direct box-dens  125.0 o64-64k-256k         71.3 ms  req      2
+lat  20 direct box-dens  125.0 o32-4k-16k           39.8 ms  req     11
+lat  20 direct box-dens  125.0 o32-16k-64k          39.1 ms  req      6
+lat  20 direct box-dens  125.0 o32-64k-256k         59.6 ms  req      2
+lat  20 direct box-dens  125.0 o16-16k-64k          51.8 ms  req      4
+lat  20 direct box-unif  125.0 u128                 27.7 ms  req     36
+lat  20 direct box-unif  125.0 u64                  31.0 ms  req     47
+lat  20 direct box-unif  125.0 u32                  29.0 ms  req     42
+lat  20 direct box-unif  125.0 u16                  25.5 ms  req     22
+lat  20 direct box-unif  125.0 u8                   28.7 ms  req      8
+lat  20 direct box-unif  125.0 o128-1k-4k           25.8 ms  req      8
+lat  20 direct box-unif  125.0 o128-4k-16k          26.2 ms  req      7
+lat  20 direct box-unif  125.0 o128-16k-64k         31.7 ms  req      5
+lat  20 direct box-unif  125.0 o128-64k-256k        55.3 ms  req      3
+lat  20 direct box-unif  125.0 o128-0-16k           26.0 ms  req      7
+lat  20 direct box-unif  125.0 o64-4k-16k           25.8 ms  req      8
+lat  20 direct box-unif  125.0 o64-16k-64k          31.3 ms  req      5
+lat  20 direct box-unif  125.0 o64-64k-256k         50.3 ms  req      3
+lat  20 direct box-unif  125.0 o32-4k-16k           25.7 ms  req      8
+lat  20 direct box-unif  125.0 o32-16k-64k          30.5 ms  req      5
+lat  20 direct box-unif  125.0 o32-64k-256k         49.7 ms  req      3
+lat  20 direct box-unif  125.0 o16-16k-64k          30.0 ms  req      5
+lat  20 direct box-dens  250.0 u128               2460.5 ms  req  10610
+lat  20 direct box-dens  250.0 u64                 728.9 ms  req   2978
+lat  20 direct box-dens  250.0 u32                 209.7 ms  req    656
+lat  20 direct box-dens  250.0 u16                  76.8 ms  req    124
+lat  20 direct box-dens  250.0 u8                   92.3 ms  req     27
+lat  20 direct box-dens  250.0 o128-1k-4k          342.7 ms  req    143
+lat  20 direct box-dens  250.0 o128-4k-16k         332.2 ms  req     45
+lat  20 direct box-dens  250.0 o128-16k-64k        334.4 ms  req     13
+lat  20 direct box-dens  250.0 o128-64k-256k       357.6 ms  req      6
+lat  20 direct box-dens  250.0 o128-0-16k          337.2 ms  req     49
+lat  20 direct box-dens  250.0 o64-4k-16k          120.9 ms  req     45
+lat  20 direct box-dens  250.0 o64-16k-64k         123.5 ms  req     13
+lat  20 direct box-dens  250.0 o64-64k-256k        135.6 ms  req      6
+lat  20 direct box-dens  250.0 o32-4k-16k           72.6 ms  req     43
+lat  20 direct box-dens  250.0 o32-16k-64k          83.6 ms  req     13
+lat  20 direct box-dens  250.0 o32-64k-256k         73.5 ms  req      6
+lat  20 direct box-dens  250.0 o16-16k-64k          65.0 ms  req     12
+lat  20 direct box-unif  250.0 u128                336.5 ms  req   1229
+lat  20 direct box-unif  250.0 u64                 192.3 ms  req    519
+lat  20 direct box-unif  250.0 u32                  74.5 ms  req    204
+lat  20 direct box-unif  250.0 u16                  35.2 ms  req     49
+lat  20 direct box-unif  250.0 u8                   74.1 ms  req     12
+lat  20 direct box-unif  250.0 o128-1k-4k           72.7 ms  req      6
+lat  20 direct box-unif  250.0 o128-4k-16k          76.5 ms  req      6
+lat  20 direct box-unif  250.0 o128-16k-64k         83.5 ms  req      4
+lat  20 direct box-unif  250.0 o128-64k-256k       116.4 ms  req      3
+lat  20 direct box-unif  250.0 o128-0-16k           82.1 ms  req      6
+lat  20 direct box-unif  250.0 o64-4k-16k           51.1 ms  req      6
+lat  20 direct box-unif  250.0 o64-16k-64k          52.5 ms  req      4
+lat  20 direct box-unif  250.0 o64-64k-256k         66.5 ms  req      3
+lat  20 direct box-unif  250.0 o32-4k-16k           29.9 ms  req      5
+lat  20 direct box-unif  250.0 o32-16k-64k          33.5 ms  req      4
+lat  20 direct box-unif  250.0 o32-64k-256k         54.7 ms  req      3
+lat  20 direct box-unif  250.0 o16-16k-64k          30.0 ms  req      4
+lat  20 zarr   random        1 u128                 38.3 ms  req      1  MB   0.02
+lat  20 zarr   random        1 u64                  25.6 ms  req      1  MB   0.14
+lat  20 zarr   random        1 u32                  26.3 ms  req      1  MB   0.34
+lat  20 zarr   random        1 u16                  44.4 ms  req      1  MB   1.87
+lat  20 zarr   random        1 u8                   49.1 ms  req      1  MB   2.22
+lat  20 zarr   random        1 o128-1k-4k           37.6 ms  req      1  MB   0.04
+lat  20 zarr   random        1 o128-4k-16k          39.8 ms  req      1  MB   0.14
+lat  20 zarr   random        1 o128-16k-64k         43.9 ms  req      1  MB   0.54
+lat  20 zarr   random        1 o128-64k-256k        66.4 ms  req      1  MB   2.73
+lat  20 zarr   random        1 o128-0-16k           39.8 ms  req      1  MB   0.14
+lat  20 zarr   random        1 o64-4k-16k           26.1 ms  req      1  MB   0.16
+lat  20 zarr   random        1 o64-16k-64k          29.4 ms  req      1  MB   0.47
+lat  20 zarr   random        1 o64-64k-256k         51.4 ms  req      1  MB   2.58
+lat  20 zarr   random        1 o32-4k-16k           26.8 ms  req      1  MB   0.34
+lat  20 zarr   random        1 o32-16k-64k          30.0 ms  req      1  MB   0.63
+lat  20 zarr   random        1 o32-64k-256k         47.6 ms  req      1  MB   2.50
+lat  20 zarr   random        1 o16-16k-64k          45.5 ms  req      1  MB   1.87
+lat  20 zarr   random       32 u128                 52.6 ms  req     32  MB   0.91
+lat  20 zarr   random       32 u64                  42.9 ms  req     30  MB   5.06
+lat  20 zarr   random       32 u32                  85.4 ms  req     24  MB  12.93
+lat  20 zarr   random       32 u16                 126.9 ms  req     19  MB  19.81
+lat  20 zarr   random       32 u8                  125.5 ms  req     16  MB  23.32
+lat  20 zarr   random       32 o128-1k-4k           55.2 ms  req     32  MB   1.50
+lat  20 zarr   random       32 o128-4k-16k          55.3 ms  req     31  MB   4.46
+lat  20 zarr   random       32 o128-16k-64k         58.2 ms  req     27  MB  14.90
+lat  20 zarr   random       32 o128-64k-256k        76.4 ms  req     15  MB  33.79
+lat  20 zarr   random       32 o128-0-16k           55.4 ms  req     31  MB   4.29
+lat  20 zarr   random       32 o64-4k-16k           43.7 ms  req     29  MB   6.79
+lat  20 zarr   random       32 o64-16k-64k          45.4 ms  req     27  MB  14.10
+lat  20 zarr   random       32 o64-64k-256k         60.4 ms  req     15  MB  31.78
+lat  20 zarr   random       32 o32-4k-16k           89.9 ms  req     23  MB  13.82
+lat  20 zarr   random       32 o32-16k-64k          86.4 ms  req     22  MB  19.00
+lat  20 zarr   random       32 o32-64k-256k         84.7 ms  req     14  MB  32.24
+lat  20 zarr   random       32 o16-16k-64k         128.2 ms  req     18  MB  22.82
+lat  20 zarr   random     1024 u128                413.5 ms  req    802  MB  13.49
+lat  20 zarr   random     1024 u64                 280.0 ms  req    570  MB  23.25
+lat  20 zarr   random     1024 u32                 198.3 ms  req    347  MB  32.11
+lat  20 zarr   random     1024 u16                 171.2 ms  req    196  MB  37.27
+lat  20 zarr   random     1024 u8                  149.0 ms  req    102  MB  40.22
+lat  20 zarr   random     1024 o128-1k-4k          332.3 ms  req    633  MB  27.23
+lat  20 zarr   random     1024 o128-4k-16k         276.3 ms  req    320  MB  41.70
+lat  20 zarr   random     1024 o128-16k-64k        234.6 ms  req     87  MB  44.47
+lat  20 zarr   random     1024 o128-64k-256k       225.3 ms  req     21  MB  44.47
+lat  20 zarr   random     1024 o128-0-16k          282.4 ms  req    337  MB  40.87
+lat  20 zarr   random     1024 o64-4k-16k          217.4 ms  req    253  MB  39.58
+lat  20 zarr   random     1024 o64-16k-64k         173.5 ms  req     86  MB  41.46
+lat  20 zarr   random     1024 o64-64k-256k        175.7 ms  req     21  MB  41.46
+lat  20 zarr   random     1024 o32-4k-16k          147.8 ms  req    196  MB  39.54
+lat  20 zarr   random     1024 o32-16k-64k         139.5 ms  req     71  MB  40.79
+lat  20 zarr   random     1024 o32-64k-256k        136.5 ms  req     20  MB  40.81
+lat  20 zarr   random     1024 o16-16k-64k         151.0 ms  req     57  MB  40.85
+lat  20 zarr   random    16384 u128               2706.5 ms  req   6708  MB  28.46
+lat  20 zarr   random    16384 u64                1321.0 ms  req   3224  MB  35.86
+lat  20 zarr   random    16384 u32                 479.5 ms  req   1277  MB  39.06
+lat  20 zarr   random    16384 u16                 269.1 ms  req    505  MB  40.36
+lat  20 zarr   random    16384 u8                  194.2 ms  req    166  MB  40.96
+lat  20 zarr   random    16384 o128-1k-4k         2097.0 ms  req   1156  MB  44.49
+lat  20 zarr   random    16384 o128-4k-16k        2115.4 ms  req    348  MB  44.48
+lat  20 zarr   random    16384 o128-16k-64k       2072.2 ms  req     87  MB  44.47
+lat  20 zarr   random    16384 o128-64k-256k      2037.2 ms  req     21  MB  44.47
+lat  20 zarr   random    16384 o128-0-16k         2172.2 ms  req    396  MB  44.41
+lat  20 zarr   random    16384 o64-4k-16k          954.1 ms  req    275  MB  41.47
+lat  20 zarr   random    16384 o64-16k-64k        1014.7 ms  req     86  MB  41.46
+lat  20 zarr   random    16384 o64-64k-256k        958.3 ms  req     21  MB  41.46
+lat  20 zarr   random    16384 o32-4k-16k          408.0 ms  req    223  MB  40.81
+lat  20 zarr   random    16384 o32-16k-64k         374.3 ms  req     73  MB  40.81
+lat  20 zarr   random    16384 o32-64k-256k        363.6 ms  req     20  MB  40.81
+lat  20 zarr   random    16384 o16-16k-64k         215.3 ms  req     60  MB  40.88
+lat  20 zarr   compact    1000 u128                 48.0 ms  req     24  MB   0.03
+lat  20 zarr   compact    1000 u64                  27.5 ms  req      8  MB   0.09
+lat  20 zarr   compact    1000 u32                  26.2 ms  req      3  MB   0.30
+lat  20 zarr   compact    1000 u16                  33.7 ms  req      1  MB   0.85
+lat  20 zarr   compact    1000 u8                   51.7 ms  req      1  MB   2.42
+lat  20 zarr   compact    1000 o128-1k-4k           47.8 ms  req      4  MB   0.18
+lat  20 zarr   compact    1000 o128-4k-16k          46.6 ms  req      3  MB   0.42
+lat  20 zarr   compact    1000 o128-16k-64k         49.0 ms  req      2  MB   0.74
+lat  20 zarr   compact    1000 o128-64k-256k        68.7 ms  req      1  MB   2.59
+lat  20 zarr   compact    1000 o128-0-16k           46.8 ms  req      3  MB   0.39
+lat  20 zarr   compact    1000 o64-4k-16k           29.1 ms  req      3  MB   0.39
+lat  20 zarr   compact    1000 o64-16k-64k          31.9 ms  req      2  MB   0.65
+lat  20 zarr   compact    1000 o64-64k-256k         50.9 ms  req      1  MB   2.45
+lat  20 zarr   compact    1000 o32-4k-16k           26.6 ms  req      3  MB   0.39
+lat  20 zarr   compact    1000 o32-16k-64k          28.9 ms  req      1  MB   0.64
+lat  20 zarr   compact    1000 o32-64k-256k         48.6 ms  req      1  MB   2.39
+lat  20 zarr   compact    1000 o16-16k-64k          34.2 ms  req      1  MB   0.85
+lat  20 zarr   cluster    1000 u128                158.2 ms  req    263  MB   0.32
+lat  20 zarr   cluster    1000 u64                  83.0 ms  req     91  MB   0.50
+lat  20 zarr   cluster    1000 u32                  54.2 ms  req     28  MB   0.60
+lat  20 zarr   cluster    1000 u16                  33.8 ms  req     10  MB   0.80
+lat  20 zarr   cluster    1000 u8                   29.9 ms  req      5  MB   1.20
+lat  20 zarr   cluster    1000 o128-1k-4k          163.7 ms  req     30  MB   1.39
+lat  20 zarr   cluster    1000 o128-4k-16k         123.1 ms  req     10  MB   1.90
+lat  20 zarr   cluster    1000 o128-16k-64k        119.8 ms  req      4  MB   2.75
+lat  20 zarr   cluster    1000 o128-64k-256k       125.9 ms  req      1  MB   3.15
+lat  20 zarr   cluster    1000 o128-0-16k          135.6 ms  req     10  MB   1.82
+lat  20 zarr   cluster    1000 o64-4k-16k           64.5 ms  req     10  MB   1.38
+lat  20 zarr   cluster    1000 o64-16k-64k          61.3 ms  req      4  MB   2.28
+lat  20 zarr   cluster    1000 o64-64k-256k         71.9 ms  req      1  MB   2.64
+lat  20 zarr   cluster    1000 o32-4k-16k           43.5 ms  req     10  MB   1.22
+lat  20 zarr   cluster    1000 o32-16k-64k          47.5 ms  req      4  MB   2.08
+lat  20 zarr   cluster    1000 o32-64k-256k         58.0 ms  req      1  MB   2.60
+lat  20 zarr   cluster    1000 o16-16k-64k          35.6 ms  req      3  MB   2.05
+lat  20 zarr   curve      1000 u128                274.9 ms  req    530  MB   1.14
+lat  20 zarr   curve      1000 u64                 136.8 ms  req    257  MB   1.47
+lat  20 zarr   curve      1000 u32                  71.6 ms  req    112  MB   1.61
+lat  20 zarr   curve      1000 u16                  44.5 ms  req     49  MB   1.67
+lat  20 zarr   curve      1000 u8                   32.1 ms  req     18  MB   1.88
+lat  20 zarr   curve      1000 o128-1k-4k          158.7 ms  req     60  MB   1.96
+lat  20 zarr   curve      1000 o128-4k-16k         135.6 ms  req     18  MB   2.12
+lat  20 zarr   curve      1000 o128-16k-64k        145.9 ms  req      7  MB   3.47
+lat  20 zarr   curve      1000 o128-64k-256k       157.4 ms  req      4  MB   9.40
+lat  20 zarr   curve      1000 o128-0-16k          144.2 ms  req     18  MB   2.12
+lat  20 zarr   curve      1000 o64-4k-16k           76.3 ms  req     18  MB   1.98
+lat  20 zarr   curve      1000 o64-16k-64k          84.0 ms  req      7  MB   3.14
+lat  20 zarr   curve      1000 o64-64k-256k        115.4 ms  req      4  MB   8.61
+lat  20 zarr   curve      1000 o32-4k-16k           56.5 ms  req     18  MB   1.91
+lat  20 zarr   curve      1000 o32-16k-64k          56.4 ms  req      7  MB   3.02
+lat  20 zarr   curve      1000 o32-64k-256k         73.1 ms  req      4  MB   8.38
+lat  20 zarr   curve      1000 o16-16k-64k          39.8 ms  req      7  MB   2.63
+lat  20 zarr   compact   10000 u128                104.7 ms  req    134  MB   0.20
+lat  20 zarr   compact   10000 u64                  49.0 ms  req     30  MB   0.33
+lat  20 zarr   compact   10000 u32                  42.2 ms  req     12  MB   0.54
+lat  20 zarr   compact   10000 u16                  55.6 ms  req      8  MB   2.22
+lat  20 zarr   compact   10000 u8                   89.6 ms  req      2  MB   4.65
+lat  20 zarr   compact   10000 o128-1k-4k           98.6 ms  req     16  MB   0.56
+lat  20 zarr   compact   10000 o128-4k-16k          83.9 ms  req      8  MB   0.97
+lat  20 zarr   compact   10000 o128-16k-64k         87.0 ms  req      4  MB   2.16
+lat  20 zarr   compact   10000 o128-64k-256k       105.4 ms  req      3  MB   6.52
+lat  20 zarr   compact   10000 o128-0-16k           83.6 ms  req      8  MB   0.94
+lat  20 zarr   compact   10000 o64-4k-16k           47.3 ms  req      8  MB   1.06
+lat  20 zarr   compact   10000 o64-16k-64k          50.7 ms  req      4  MB   2.14
+lat  20 zarr   compact   10000 o64-64k-256k         68.3 ms  req      3  MB   6.59
+lat  20 zarr   compact   10000 o32-4k-16k           41.1 ms  req      6  MB   1.08
+lat  20 zarr   compact   10000 o32-16k-64k          46.0 ms  req      4  MB   2.18
+lat  20 zarr   compact   10000 o32-64k-256k         63.0 ms  req      2  MB   6.52
+lat  20 zarr   compact   10000 o16-16k-64k          56.3 ms  req      2  MB   2.22
+lat  20 zarr   cluster   10000 u128                926.2 ms  req   2593  MB   1.28
+lat  20 zarr   cluster   10000 u64                 228.8 ms  req    590  MB   1.27
+lat  20 zarr   cluster   10000 u32                  87.6 ms  req    125  MB   1.29
+lat  20 zarr   cluster   10000 u16                  48.5 ms  req     30  MB   1.34
+lat  20 zarr   cluster   10000 u8                   47.8 ms  req     10  MB   1.69
+lat  20 zarr   cluster   10000 o128-1k-4k          633.0 ms  req     52  MB   2.06
+lat  20 zarr   cluster   10000 o128-4k-16k         649.3 ms  req     18  MB   2.66
+lat  20 zarr   cluster   10000 o128-16k-64k        627.0 ms  req      9  MB   6.32
+lat  20 zarr   cluster   10000 o128-64k-256k       669.3 ms  req      6  MB  13.05
+lat  20 zarr   cluster   10000 o128-0-16k          643.7 ms  req     18  MB   2.62
+lat  20 zarr   cluster   10000 o64-4k-16k          138.7 ms  req     18  MB   2.20
+lat  20 zarr   cluster   10000 o64-16k-64k         153.8 ms  req      9  MB   5.33
+lat  20 zarr   cluster   10000 o64-64k-256k        165.5 ms  req      6  MB  11.44
+lat  20 zarr   cluster   10000 o32-4k-16k           68.4 ms  req     18  MB   2.04
+lat  20 zarr   cluster   10000 o32-16k-64k          71.7 ms  req      9  MB   4.68
+lat  20 zarr   cluster   10000 o32-64k-256k         84.1 ms  req      6  MB  11.01
+lat  20 zarr   cluster   10000 o16-16k-64k          48.8 ms  req      7  MB   3.83
+lat  20 zarr   curve     10000 u128                696.6 ms  req   1700  MB   1.56
+lat  20 zarr   curve     10000 u64                 303.3 ms  req    626  MB   1.62
+lat  20 zarr   curve     10000 u32                 122.1 ms  req    204  MB   1.65
+lat  20 zarr   curve     10000 u16                  67.2 ms  req     74  MB   1.90
+lat  20 zarr   curve     10000 u8                   48.2 ms  req     29  MB   3.67
+lat  20 zarr   curve     10000 o128-1k-4k          419.7 ms  req     73  MB   2.78
+lat  20 zarr   curve     10000 o128-4k-16k         402.0 ms  req     26  MB   3.94
+lat  20 zarr   curve     10000 o128-16k-64k        400.5 ms  req     13  MB   7.17
+lat  20 zarr   curve     10000 o128-64k-256k       426.0 ms  req      8  MB  19.00
+lat  20 zarr   curve     10000 o128-0-16k          400.1 ms  req     28  MB   3.77
+lat  20 zarr   curve     10000 o64-4k-16k          160.6 ms  req     26  MB   3.27
+lat  20 zarr   curve     10000 o64-16k-64k         160.4 ms  req     13  MB   6.12
+lat  20 zarr   curve     10000 o64-64k-256k        175.7 ms  req      8  MB  16.47
+lat  20 zarr   curve     10000 o32-4k-16k           91.9 ms  req     26  MB   2.86
+lat  20 zarr   curve     10000 o32-16k-64k          93.4 ms  req     13  MB   5.63
+lat  20 zarr   curve     10000 o32-64k-256k        104.4 ms  req      8  MB  15.68
+lat  20 zarr   curve     10000 o16-16k-64k          59.4 ms  req     13  MB   5.71
+lat  20 zarr   box-dens   15.6 u128                 49.1 ms  req     27
+lat  20 zarr   box-dens   15.6 u64                  27.6 ms  req      8
+lat  20 zarr   box-dens   15.6 u32                  28.7 ms  req      4
+lat  20 zarr   box-dens   15.6 u16                  35.5 ms  req      2
+lat  20 zarr   box-dens   15.6 u8                   89.4 ms  req      1
+lat  20 zarr   box-dens   15.6 o128-1k-4k           39.4 ms  req      8
+lat  20 zarr   box-dens   15.6 o128-4k-16k          47.2 ms  req      3
+lat  20 zarr   box-dens   15.6 o128-16k-64k         52.4 ms  req      2
+lat  20 zarr   box-dens   15.6 o128-64k-256k        70.7 ms  req      2
+lat  20 zarr   box-dens   15.6 o128-0-16k           46.9 ms  req      2
+lat  20 zarr   box-dens   15.6 o64-4k-16k           29.9 ms  req      3
+lat  20 zarr   box-dens   15.6 o64-16k-64k          33.3 ms  req      2
+lat  20 zarr   box-dens   15.6 o64-64k-256k         52.5 ms  req      2
+lat  20 zarr   box-dens   15.6 o32-4k-16k           28.9 ms  req      2
+lat  20 zarr   box-dens   15.6 o32-16k-64k          31.7 ms  req      2
+lat  20 zarr   box-dens   15.6 o32-64k-256k         51.2 ms  req      2
+lat  20 zarr   box-dens   15.6 o16-16k-64k          35.1 ms  req      2
+lat  20 zarr   box-unif   15.6 u128                  0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 u64                   0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 u32                   0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 u16                  21.2 ms  req      1
+lat  20 zarr   box-unif   15.6 u8                   21.2 ms  req      1
+lat  20 zarr   box-unif   15.6 o128-1k-4k            0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o128-4k-16k           0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o128-16k-64k          0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o128-64k-256k         0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o128-0-16k            0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o64-4k-16k            0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o64-16k-64k           0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o64-64k-256k          0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o32-4k-16k            0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o32-16k-64k           0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o32-64k-256k          0.0 ms  req      0
+lat  20 zarr   box-unif   15.6 o16-16k-64k          23.5 ms  req      1
+lat  20 zarr   box-dens   62.5 u128                371.6 ms  req    718
+lat  20 zarr   box-dens   62.5 u64                 108.1 ms  req    124
+lat  20 zarr   box-dens   62.5 u32                 118.3 ms  req     27
+lat  20 zarr   box-dens   62.5 u16                 158.0 ms  req      8
+lat  20 zarr   box-dens   62.5 u8                  154.4 ms  req      4
+lat  20 zarr   box-dens   62.5 o128-1k-4k          211.7 ms  req    193
+lat  20 zarr   box-dens   62.5 o128-4k-16k         200.6 ms  req     99
+lat  20 zarr   box-dens   62.5 o128-16k-64k        204.3 ms  req     25
+lat  20 zarr   box-dens   62.5 o128-64k-256k       186.7 ms  req      7
+lat  20 zarr   box-dens   62.5 o128-0-16k          199.9 ms  req    102
+lat  20 zarr   box-dens   62.5 o64-4k-16k           96.6 ms  req     40
+lat  20 zarr   box-dens   62.5 o64-16k-64k          97.5 ms  req     24
+lat  20 zarr   box-dens   62.5 o64-64k-256k        107.3 ms  req      7
+lat  20 zarr   box-dens   62.5 o32-4k-16k          119.2 ms  req     16
+lat  20 zarr   box-dens   62.5 o32-16k-64k         116.6 ms  req     11
+lat  20 zarr   box-dens   62.5 o32-64k-256k        113.7 ms  req      6
+lat  20 zarr   box-dens   62.5 o16-16k-64k         158.3 ms  req      5
+lat  20 zarr   box-unif   62.5 u128                  0.0 ms  req      0
+lat  20 zarr   box-unif   62.5 u64                  22.6 ms  req      1
+lat  20 zarr   box-unif   62.5 u32                  22.1 ms  req      2
+lat  20 zarr   box-unif   62.5 u16                  24.7 ms  req      6
+lat  20 zarr   box-unif   62.5 u8                   23.8 ms  req      2
+lat  20 zarr   box-unif   62.5 o128-1k-4k            0.0 ms  req      0
+lat  20 zarr   box-unif   62.5 o128-4k-16k           0.1 ms  req      0
+lat  20 zarr   box-unif   62.5 o128-16k-64k          0.1 ms  req      0
+lat  20 zarr   box-unif   62.5 o128-64k-256k         0.1 ms  req      0
+lat  20 zarr   box-unif   62.5 o128-0-16k            0.1 ms  req      0
+lat  20 zarr   box-unif   62.5 o64-4k-16k           24.8 ms  req      1
+lat  20 zarr   box-unif   62.5 o64-16k-64k          28.7 ms  req      1
+lat  20 zarr   box-unif   62.5 o64-64k-256k         45.9 ms  req      1
+lat  20 zarr   box-unif   62.5 o32-4k-16k           24.0 ms  req      1
+lat  20 zarr   box-unif   62.5 o32-16k-64k          28.0 ms  req      1
+lat  20 zarr   box-unif   62.5 o32-64k-256k         48.1 ms  req      1
+lat  20 zarr   box-unif   62.5 o16-16k-64k          27.3 ms  req      1
+lat  20 zarr   box-dens  125.0 u128                660.4 ms  req   1862
+lat  20 zarr   box-dens  125.0 u64                 258.7 ms  req    413
+lat  20 zarr   box-dens  125.0 u32                  80.1 ms  req    108
+lat  20 zarr   box-dens  125.0 u16                  54.2 ms  req     25
+lat  20 zarr   box-dens  125.0 u8                   56.1 ms  req      8
+lat  20 zarr   box-dens  125.0 o128-1k-4k          502.4 ms  req     55
+lat  20 zarr   box-dens  125.0 o128-4k-16k         463.5 ms  req     18
+lat  20 zarr   box-dens  125.0 o128-16k-64k        448.7 ms  req      6
+lat  20 zarr   box-dens  125.0 o128-64k-256k       462.9 ms  req      2
+lat  20 zarr   box-dens  125.0 o128-0-16k          471.1 ms  req     23
+lat  20 zarr   box-dens  125.0 o64-4k-16k          152.7 ms  req     15
+lat  20 zarr   box-dens  125.0 o64-16k-64k         155.0 ms  req      6
+lat  20 zarr   box-dens  125.0 o64-64k-256k        144.3 ms  req      2
+lat  20 zarr   box-dens  125.0 o32-4k-16k           57.1 ms  req     11
+lat  20 zarr   box-dens  125.0 o32-16k-64k          58.5 ms  req      6
+lat  20 zarr   box-dens  125.0 o32-64k-256k         79.2 ms  req      2
+lat  20 zarr   box-dens  125.0 o16-16k-64k          52.1 ms  req      4
+lat  20 zarr   box-unif  125.0 u128                 44.0 ms  req     36
+lat  20 zarr   box-unif  125.0 u64                  43.0 ms  req     47
+lat  20 zarr   box-unif  125.0 u32                  39.0 ms  req     42
+lat  20 zarr   box-unif  125.0 u16                  30.0 ms  req     22
+lat  20 zarr   box-unif  125.0 u8                   31.6 ms  req      8
+lat  20 zarr   box-unif  125.0 o128-1k-4k           46.3 ms  req      8
+lat  20 zarr   box-unif  125.0 o128-4k-16k          46.7 ms  req      7
+lat  20 zarr   box-unif  125.0 o128-16k-64k         51.2 ms  req      5
+lat  20 zarr   box-unif  125.0 o128-64k-256k        74.2 ms  req      3
+lat  20 zarr   box-unif  125.0 o128-0-16k           45.2 ms  req      7
+lat  20 zarr   box-unif  125.0 o64-4k-16k           33.1 ms  req      8
+lat  20 zarr   box-unif  125.0 o64-16k-64k          40.4 ms  req      5
+lat  20 zarr   box-unif  125.0 o64-64k-256k         57.9 ms  req      3
+lat  20 zarr   box-unif  125.0 o32-4k-16k           33.3 ms  req      8
+lat  20 zarr   box-unif  125.0 o32-16k-64k          36.6 ms  req      5
+lat  20 zarr   box-unif  125.0 o32-64k-256k         53.5 ms  req      3
+lat  20 zarr   box-unif  125.0 o16-16k-64k          33.3 ms  req      5
+lat  20 zarr   box-dens  250.0 u128               4041.0 ms  req  10610
+lat  20 zarr   box-dens  250.0 u64                1053.8 ms  req   2978
+lat  20 zarr   box-dens  250.0 u32                 277.7 ms  req    656
+lat  20 zarr   box-dens  250.0 u16                  99.2 ms  req    124
+lat  20 zarr   box-dens  250.0 u8                   88.5 ms  req     27
+lat  20 zarr   box-dens  250.0 o128-1k-4k         2997.0 ms  req    143
+lat  20 zarr   box-dens  250.0 o128-4k-16k        3076.5 ms  req     45
+lat  20 zarr   box-dens  250.0 o128-16k-64k       2945.4 ms  req     13
+lat  20 zarr   box-dens  250.0 o128-64k-256k      3031.8 ms  req      6
+lat  20 zarr   box-dens  250.0 o128-0-16k         3100.4 ms  req     49
+lat  20 zarr   box-dens  250.0 o64-4k-16k          711.2 ms  req     45
+lat  20 zarr   box-dens  250.0 o64-16k-64k         748.9 ms  req     13
+lat  20 zarr   box-dens  250.0 o64-64k-256k        742.2 ms  req      6
+lat  20 zarr   box-dens  250.0 o32-4k-16k          159.1 ms  req     43
+lat  20 zarr   box-dens  250.0 o32-16k-64k         156.2 ms  req     13
+lat  20 zarr   box-dens  250.0 o32-64k-256k        181.2 ms  req      6
+lat  20 zarr   box-dens  250.0 o16-16k-64k          76.8 ms  req     12
+lat  20 zarr   box-unif  250.0 u128                445.6 ms  req   1229
+lat  20 zarr   box-unif  250.0 u64                 292.1 ms  req    519
+lat  20 zarr   box-unif  250.0 u32                 121.1 ms  req    204
+lat  20 zarr   box-unif  250.0 u16                  43.4 ms  req     49
+lat  20 zarr   box-unif  250.0 u8                   79.3 ms  req     12
+lat  20 zarr   box-unif  250.0 o128-1k-4k          273.1 ms  req      6
+lat  20 zarr   box-unif  250.0 o128-4k-16k         281.3 ms  req      6
+lat  20 zarr   box-unif  250.0 o128-16k-64k        274.8 ms  req      4
+lat  20 zarr   box-unif  250.0 o128-64k-256k       336.5 ms  req      3
+lat  20 zarr   box-unif  250.0 o128-0-16k          285.9 ms  req      6
+lat  20 zarr   box-unif  250.0 o64-4k-16k          141.5 ms  req      6
+lat  20 zarr   box-unif  250.0 o64-16k-64k         140.1 ms  req      4
+lat  20 zarr   box-unif  250.0 o64-64k-256k        174.1 ms  req      3
+lat  20 zarr   box-unif  250.0 o32-4k-16k           80.0 ms  req      5
+lat  20 zarr   box-unif  250.0 o32-16k-64k          82.8 ms  req      4
+lat  20 zarr   box-unif  250.0 o32-64k-256k         95.0 ms  req      3
+lat  20 zarr   box-unif  250.0 o16-16k-64k          39.1 ms  req      4
+lat  80 direct random        1 u128                 82.1 ms  req      1  MB   0.02
+lat  80 direct random        1 u64                  83.2 ms  req      1  MB   0.14
+lat  80 direct random        1 u32                  85.9 ms  req      1  MB   0.34
+lat  80 direct random        1 u16                 104.4 ms  req      1  MB   1.87
+lat  80 direct random        1 u8                  108.9 ms  req      1  MB   2.22
+lat  80 direct random        1 o128-1k-4k           82.2 ms  req      1  MB   0.05
+lat  80 direct random        1 o128-4k-16k          83.3 ms  req      1  MB   0.14
+lat  80 direct random        1 o128-16k-64k         87.5 ms  req      1  MB   0.54
+lat  80 direct random        1 o128-64k-256k       110.3 ms  req      1  MB   2.73
+lat  80 direct random        1 o128-0-16k           83.3 ms  req      1  MB   0.14
+lat  80 direct random        1 o64-4k-16k           84.7 ms  req      1  MB   0.18
+lat  80 direct random        1 o64-16k-64k          86.9 ms  req      1  MB   0.47
+lat  80 direct random        1 o64-64k-256k        109.0 ms  req      1  MB   2.58
+lat  80 direct random        1 o32-4k-16k          106.2 ms  req      1  MB   0.35
+lat  80 direct random        1 o32-16k-64k         106.0 ms  req      1  MB   0.64
+lat  80 direct random        1 o32-64k-256k        107.9 ms  req      1  MB   2.50
+lat  80 direct random        1 o16-16k-64k         126.2 ms  req      1  MB   1.87
+lat  80 direct random       32 u128                 91.3 ms  req     32  MB   0.91
+lat  80 direct random       32 u64                 105.3 ms  req     30  MB   5.06
+lat  80 direct random       32 u32                 158.0 ms  req     24  MB  12.93
+lat  80 direct random       32 u16                 205.7 ms  req     19  MB  19.81
+lat  80 direct random       32 u8                  210.5 ms  req     16  MB  23.32
+lat  80 direct random       32 o128-1k-4k           93.1 ms  req     32  MB   1.50
+lat  80 direct random       32 o128-4k-16k          94.3 ms  req     31  MB   4.46
+lat  80 direct random       32 o128-16k-64k         98.4 ms  req     27  MB  14.90
+lat  80 direct random       32 o128-64k-256k       119.1 ms  req     15  MB  33.79
+lat  80 direct random       32 o128-0-16k           93.2 ms  req     31  MB   4.29
+lat  80 direct random       32 o64-4k-16k          106.0 ms  req     29  MB   6.79
+lat  80 direct random       32 o64-16k-64k         104.5 ms  req     27  MB  14.10
+lat  80 direct random       32 o64-64k-256k        121.8 ms  req     15  MB  31.78
+lat  80 direct random       32 o32-4k-16k          158.2 ms  req     23  MB  13.82
+lat  80 direct random       32 o32-16k-64k         156.8 ms  req     22  MB  19.00
+lat  80 direct random       32 o32-64k-256k        156.5 ms  req     14  MB  32.24
+lat  80 direct random       32 o16-16k-64k         204.9 ms  req     18  MB  22.82
+lat  80 direct random     1024 u128                641.6 ms  req    802  MB  13.49
+lat  80 direct random     1024 u64                 476.1 ms  req    570  MB  23.25
+lat  80 direct random     1024 u32                 328.7 ms  req    347  MB  32.11
+lat  80 direct random     1024 u16                 241.1 ms  req    196  MB  37.27
+lat  80 direct random     1024 u8                  227.5 ms  req    102  MB  40.22
+lat  80 direct random     1024 o128-1k-4k          532.1 ms  req    633  MB  27.23
+lat  80 direct random     1024 o128-4k-16k         349.9 ms  req    320  MB  41.70
+lat  80 direct random     1024 o128-16k-64k        173.4 ms  req     87  MB  44.47
+lat  80 direct random     1024 o128-64k-256k       172.7 ms  req     21  MB  44.47
+lat  80 direct random     1024 o128-0-16k          354.1 ms  req    337  MB  40.87
+lat  80 direct random     1024 o64-4k-16k          270.4 ms  req    253  MB  39.58
+lat  80 direct random     1024 o64-16k-64k         157.0 ms  req     86  MB  41.46
+lat  80 direct random     1024 o64-64k-256k        156.0 ms  req     21  MB  41.46
+lat  80 direct random     1024 o32-4k-16k          246.9 ms  req    196  MB  39.54
+lat  80 direct random     1024 o32-16k-64k         185.5 ms  req     71  MB  40.79
+lat  80 direct random     1024 o32-64k-256k        175.9 ms  req     20  MB  40.81
+lat  80 direct random     1024 o16-16k-64k         223.0 ms  req     57  MB  40.85
+lat  80 direct random    16384 u128               4507.0 ms  req   6708  MB  28.46
+lat  80 direct random    16384 u64                2256.3 ms  req   3224  MB  35.86
+lat  80 direct random    16384 u32                 964.1 ms  req   1277  MB  39.06
+lat  80 direct random    16384 u16                 443.5 ms  req    505  MB  40.36
+lat  80 direct random    16384 u8                  258.2 ms  req    166  MB  40.96
+lat  80 direct random    16384 o128-1k-4k         1040.2 ms  req   1156  MB  44.49
+lat  80 direct random    16384 o128-4k-16k         533.5 ms  req    348  MB  44.48
+lat  80 direct random    16384 o128-16k-64k        375.6 ms  req     87  MB  44.47
+lat  80 direct random    16384 o128-64k-256k       382.9 ms  req     21  MB  44.47
+lat  80 direct random    16384 o128-0-16k          553.4 ms  req    396  MB  44.41
+lat  80 direct random    16384 o64-4k-16k          403.8 ms  req    275  MB  41.47
+lat  80 direct random    16384 o64-16k-64k         284.8 ms  req     86  MB  41.46
+lat  80 direct random    16384 o64-64k-256k        264.2 ms  req     21  MB  41.46
+lat  80 direct random    16384 o32-4k-16k          307.7 ms  req    223  MB  40.81
+lat  80 direct random    16384 o32-16k-64k         245.6 ms  req     73  MB  40.81
+lat  80 direct random    16384 o32-64k-256k        220.9 ms  req     20  MB  40.81
+lat  80 direct random    16384 o16-16k-64k         253.1 ms  req     60  MB  40.88
+lat  80 direct compact    1000 u128                 86.9 ms  req     24  MB   0.03
+lat  80 direct compact    1000 u64                  85.1 ms  req      8  MB   0.09
+lat  80 direct compact    1000 u32                  85.1 ms  req      3  MB   0.30
+lat  80 direct compact    1000 u16                  93.5 ms  req      1  MB   0.85
+lat  80 direct compact    1000 u8                  111.5 ms  req      1  MB   2.42
+lat  80 direct compact    1000 o128-1k-4k           85.6 ms  req      4  MB   0.18
+lat  80 direct compact    1000 o128-4k-16k          85.2 ms  req      3  MB   0.42
+lat  80 direct compact    1000 o128-16k-64k         89.1 ms  req      2  MB   0.74
+lat  80 direct compact    1000 o128-64k-256k       108.8 ms  req      1  MB   2.59
+lat  80 direct compact    1000 o128-0-16k           86.7 ms  req      3  MB   0.39
+lat  80 direct compact    1000 o64-4k-16k           85.5 ms  req      3  MB   0.39
+lat  80 direct compact    1000 o64-16k-64k          89.2 ms  req      2  MB   0.65
+lat  80 direct compact    1000 o64-64k-256k        108.6 ms  req      1  MB   2.45
+lat  80 direct compact    1000 o32-4k-16k           87.3 ms  req      3  MB   0.39
+lat  80 direct compact    1000 o32-16k-64k          90.5 ms  req      1  MB   0.64
+lat  80 direct compact    1000 o32-64k-256k        108.3 ms  req      1  MB   2.39
+lat  80 direct compact    1000 o16-16k-64k          94.1 ms  req      1  MB   0.85
+lat  80 direct cluster    1000 u128                279.0 ms  req    263  MB   0.32
+lat  80 direct cluster    1000 u64                 129.6 ms  req     91  MB   0.50
+lat  80 direct cluster    1000 u32                  99.3 ms  req     28  MB   0.60
+lat  80 direct cluster    1000 u16                  89.8 ms  req     10  MB   0.80
+lat  80 direct cluster    1000 u8                   91.2 ms  req      5  MB   1.20
+lat  80 direct cluster    1000 o128-1k-4k          113.4 ms  req     30  MB   1.39
+lat  80 direct cluster    1000 o128-4k-16k         114.0 ms  req     10  MB   1.90
+lat  80 direct cluster    1000 o128-16k-64k        116.9 ms  req      4  MB   2.75
+lat  80 direct cluster    1000 o128-64k-256k       137.4 ms  req      1  MB   3.15
+lat  80 direct cluster    1000 o128-0-16k          112.9 ms  req     10  MB   1.82
+lat  80 direct cluster    1000 o64-4k-16k           97.7 ms  req     10  MB   1.38
+lat  80 direct cluster    1000 o64-16k-64k          99.5 ms  req      4  MB   2.28
+lat  80 direct cluster    1000 o64-64k-256k        116.4 ms  req      1  MB   2.64
+lat  80 direct cluster    1000 o32-4k-16k           91.3 ms  req     10  MB   1.22
+lat  80 direct cluster    1000 o32-16k-64k          93.8 ms  req      4  MB   2.08
+lat  80 direct cluster    1000 o32-64k-256k        112.2 ms  req      1  MB   2.60
+lat  80 direct cluster    1000 o16-16k-64k          92.3 ms  req      3  MB   2.05
+lat  80 direct curve      1000 u128                431.3 ms  req    530  MB   1.14
+lat  80 direct curve      1000 u64                 257.8 ms  req    257  MB   1.47
+lat  80 direct curve      1000 u32                 109.4 ms  req    112  MB   1.61
+lat  80 direct curve      1000 u16                  96.5 ms  req     49  MB   1.67
+lat  80 direct curve      1000 u8                   92.8 ms  req     18  MB   1.88
+lat  80 direct curve      1000 o128-1k-4k          124.1 ms  req     60  MB   1.96
+lat  80 direct curve      1000 o128-4k-16k         114.2 ms  req     18  MB   2.12
+lat  80 direct curve      1000 o128-16k-64k        111.5 ms  req      7  MB   3.47
+lat  80 direct curve      1000 o128-64k-256k       134.2 ms  req      4  MB   9.40
+lat  80 direct curve      1000 o128-0-16k          114.3 ms  req     18  MB   2.12
+lat  80 direct curve      1000 o64-4k-16k          101.8 ms  req     18  MB   1.98
+lat  80 direct curve      1000 o64-16k-64k         101.8 ms  req      7  MB   3.14
+lat  80 direct curve      1000 o64-64k-256k        123.0 ms  req      4  MB   8.61
+lat  80 direct curve      1000 o32-4k-16k           96.7 ms  req     18  MB   1.91
+lat  80 direct curve      1000 o32-16k-64k          97.1 ms  req      7  MB   3.02
+lat  80 direct curve      1000 o32-64k-256k        117.2 ms  req      4  MB   8.38
+lat  80 direct curve      1000 o16-16k-64k          94.8 ms  req      7  MB   2.63
+lat  80 direct compact   10000 u128                183.4 ms  req    134  MB   0.20
+lat  80 direct compact   10000 u64                 105.2 ms  req     30  MB   0.33
+lat  80 direct compact   10000 u32                 100.2 ms  req     12  MB   0.54
+lat  80 direct compact   10000 u16                 116.9 ms  req      8  MB   2.22
+lat  80 direct compact   10000 u8                  148.9 ms  req      2  MB   4.65
+lat  80 direct compact   10000 o128-1k-4k          104.8 ms  req     16  MB   0.56
+lat  80 direct compact   10000 o128-4k-16k         103.1 ms  req      8  MB   0.97
+lat  80 direct compact   10000 o128-16k-64k        107.1 ms  req      4  MB   2.16
+lat  80 direct compact   10000 o128-64k-256k       127.1 ms  req      3  MB   6.52
+lat  80 direct compact   10000 o128-0-16k          102.9 ms  req      8  MB   0.94
+lat  80 direct compact   10000 o64-4k-16k          100.3 ms  req      8  MB   1.06
+lat  80 direct compact   10000 o64-16k-64k         105.1 ms  req      4  MB   2.14
+lat  80 direct compact   10000 o64-64k-256k        123.3 ms  req      3  MB   6.59
+lat  80 direct compact   10000 o32-4k-16k           99.4 ms  req      6  MB   1.08
+lat  80 direct compact   10000 o32-16k-64k         102.4 ms  req      4  MB   2.18
+lat  80 direct compact   10000 o32-64k-256k        121.6 ms  req      2  MB   6.52
+lat  80 direct compact   10000 o16-16k-64k         117.2 ms  req      2  MB   2.22
+lat  80 direct cluster   10000 u128               1817.4 ms  req   2593  MB   1.28
+lat  80 direct cluster   10000 u64                 472.6 ms  req    590  MB   1.27
+lat  80 direct cluster   10000 u32                 124.0 ms  req    125  MB   1.29
+lat  80 direct cluster   10000 u16                 106.2 ms  req     30  MB   1.34
+lat  80 direct cluster   10000 u8                  108.5 ms  req     10  MB   1.69
+lat  80 direct cluster   10000 o128-1k-4k          214.2 ms  req     52  MB   2.06
+lat  80 direct cluster   10000 o128-4k-16k         217.6 ms  req     18  MB   2.66
+lat  80 direct cluster   10000 o128-16k-64k        209.6 ms  req      9  MB   6.32
+lat  80 direct cluster   10000 o128-64k-256k       229.0 ms  req      6  MB  13.05
+lat  80 direct cluster   10000 o128-0-16k          211.6 ms  req     18  MB   2.62
+lat  80 direct cluster   10000 o64-4k-16k          125.8 ms  req     18  MB   2.20
+lat  80 direct cluster   10000 o64-16k-64k         128.2 ms  req      9  MB   5.33
+lat  80 direct cluster   10000 o64-64k-256k        144.3 ms  req      6  MB  11.44
+lat  80 direct cluster   10000 o32-4k-16k          107.4 ms  req     18  MB   2.04
+lat  80 direct cluster   10000 o32-16k-64k         109.4 ms  req      9  MB   4.68
+lat  80 direct cluster   10000 o32-64k-256k        128.7 ms  req      6  MB  11.01
+lat  80 direct cluster   10000 o16-16k-64k         104.9 ms  req      7  MB   3.83
+lat  80 direct curve     10000 u128               1205.0 ms  req   1700  MB   1.56
+lat  80 direct curve     10000 u64                 477.3 ms  req    626  MB   1.62
+lat  80 direct curve     10000 u32                 210.9 ms  req    204  MB   1.65
+lat  80 direct curve     10000 u16                 114.7 ms  req     74  MB   1.90
+lat  80 direct curve     10000 u8                  110.9 ms  req     29  MB   3.67
+lat  80 direct curve     10000 o128-1k-4k          189.7 ms  req     73  MB   2.78
+lat  80 direct curve     10000 o128-4k-16k         175.1 ms  req     26  MB   3.94
+lat  80 direct curve     10000 o128-16k-64k        176.0 ms  req     13  MB   7.17
+lat  80 direct curve     10000 o128-64k-256k       196.8 ms  req      8  MB  19.00
+lat  80 direct curve     10000 o128-0-16k          176.1 ms  req     28  MB   3.77
+lat  80 direct curve     10000 o64-4k-16k          130.0 ms  req     26  MB   3.27
+lat  80 direct curve     10000 o64-16k-64k         128.3 ms  req     13  MB   6.12
+lat  80 direct curve     10000 o64-64k-256k        144.8 ms  req      8  MB  16.47
+lat  80 direct curve     10000 o32-4k-16k          111.9 ms  req     26  MB   2.86
+lat  80 direct curve     10000 o32-16k-64k         111.6 ms  req     13  MB   5.63
+lat  80 direct curve     10000 o32-64k-256k        130.6 ms  req      8  MB  15.68
+lat  80 direct curve     10000 o16-16k-64k         108.4 ms  req     13  MB   5.71
+lat  80 direct box-dens   15.6 u128                 89.0 ms  req     27
+lat  80 direct box-dens   15.6 u64                  85.2 ms  req      8
+lat  80 direct box-dens   15.6 u32                  89.3 ms  req      4
+lat  80 direct box-dens   15.6 u16                  92.1 ms  req      2
+lat  80 direct box-dens   15.6 u8                  144.8 ms  req      1
+lat  80 direct box-dens   15.6 o128-1k-4k           85.2 ms  req      8
+lat  80 direct box-dens   15.6 o128-4k-16k          86.8 ms  req      3
+lat  80 direct box-dens   15.6 o128-16k-64k         91.2 ms  req      2
+lat  80 direct box-dens   15.6 o128-64k-256k       111.5 ms  req      2
+lat  80 direct box-dens   15.6 o128-0-16k           86.2 ms  req      2
+lat  80 direct box-dens   15.6 o64-4k-16k           85.9 ms  req      3
+lat  80 direct box-dens   15.6 o64-16k-64k          90.8 ms  req      2
+lat  80 direct box-dens   15.6 o64-64k-256k        109.7 ms  req      2
+lat  80 direct box-dens   15.6 o32-4k-16k           88.9 ms  req      2
+lat  80 direct box-dens   15.6 o32-16k-64k          90.5 ms  req      2
+lat  80 direct box-dens   15.6 o32-64k-256k        108.7 ms  req      2
+lat  80 direct box-dens   15.6 o16-16k-64k          92.5 ms  req      2
+lat  80 direct box-unif   15.6 u128                  0.0 ms  req      0
+lat  80 direct box-unif   15.6 u64                   0.0 ms  req      0
+lat  80 direct box-unif   15.6 u32                   0.0 ms  req      0
+lat  80 direct box-unif   15.6 u16                  81.5 ms  req      1
+lat  80 direct box-unif   15.6 u8                   82.0 ms  req      1
+lat  80 direct box-unif   15.6 o128-1k-4k            0.0 ms  req      0
+lat  80 direct box-unif   15.6 o128-4k-16k           0.0 ms  req      0
+lat  80 direct box-unif   15.6 o128-16k-64k          0.0 ms  req      0
+lat  80 direct box-unif   15.6 o128-64k-256k         0.0 ms  req      0
+lat  80 direct box-unif   15.6 o128-0-16k            0.0 ms  req      0
+lat  80 direct box-unif   15.6 o64-4k-16k            0.0 ms  req      0
+lat  80 direct box-unif   15.6 o64-16k-64k           0.0 ms  req      0
+lat  80 direct box-unif   15.6 o64-64k-256k          0.0 ms  req      0
+lat  80 direct box-unif   15.6 o32-4k-16k            0.1 ms  req      0
+lat  80 direct box-unif   15.6 o32-16k-64k           0.1 ms  req      0
+lat  80 direct box-unif   15.6 o32-64k-256k          0.1 ms  req      0
+lat  80 direct box-unif   15.6 o16-16k-64k          84.0 ms  req      1
+lat  80 direct box-dens   62.5 u128                549.6 ms  req    718
+lat  80 direct box-dens   62.5 u64                 151.2 ms  req    124
+lat  80 direct box-dens   62.5 u32                 177.3 ms  req     27
+lat  80 direct box-dens   62.5 u16                 213.2 ms  req      8
+lat  80 direct box-dens   62.5 u8                  213.6 ms  req      4
+lat  80 direct box-dens   62.5 o128-1k-4k          252.6 ms  req    193
+lat  80 direct box-dens   62.5 o128-4k-16k         171.3 ms  req     99
+lat  80 direct box-dens   62.5 o128-16k-64k        150.6 ms  req     25
+lat  80 direct box-dens   62.5 o128-64k-256k       164.1 ms  req      7
+lat  80 direct box-dens   62.5 o128-0-16k          168.7 ms  req    102
+lat  80 direct box-dens   62.5 o64-4k-16k          144.7 ms  req     40
+lat  80 direct box-dens   62.5 o64-16k-64k         139.7 ms  req     24
+lat  80 direct box-dens   62.5 o64-64k-256k        153.6 ms  req      7
+lat  80 direct box-dens   62.5 o32-4k-16k          177.5 ms  req     16
+lat  80 direct box-dens   62.5 o32-16k-64k         175.4 ms  req     11
+lat  80 direct box-dens   62.5 o32-64k-256k        174.0 ms  req      6
+lat  80 direct box-dens   62.5 o16-16k-64k         214.1 ms  req      5
+lat  80 direct box-unif   62.5 u128                  0.0 ms  req      0
+lat  80 direct box-unif   62.5 u64                  80.7 ms  req      1
+lat  80 direct box-unif   62.5 u32                  83.3 ms  req      2
+lat  80 direct box-unif   62.5 u16                  83.3 ms  req      6
+lat  80 direct box-unif   62.5 u8                   83.2 ms  req      2
+lat  80 direct box-unif   62.5 o128-1k-4k            0.1 ms  req      0
+lat  80 direct box-unif   62.5 o128-4k-16k           0.1 ms  req      0
+lat  80 direct box-unif   62.5 o128-16k-64k          0.1 ms  req      0
+lat  80 direct box-unif   62.5 o128-64k-256k         0.1 ms  req      0
+lat  80 direct box-unif   62.5 o128-0-16k            0.1 ms  req      0
+lat  80 direct box-unif   62.5 o64-4k-16k           83.2 ms  req      1
+lat  80 direct box-unif   62.5 o64-16k-64k          87.7 ms  req      1
+lat  80 direct box-unif   62.5 o64-64k-256k        100.6 ms  req      1
+lat  80 direct box-unif   62.5 o32-4k-16k           84.2 ms  req      1
+lat  80 direct box-unif   62.5 o32-16k-64k          86.8 ms  req      1
+lat  80 direct box-unif   62.5 o32-64k-256k        107.8 ms  req      1
+lat  80 direct box-unif   62.5 o16-16k-64k          86.9 ms  req      1
+lat  80 direct box-dens  125.0 u128               1334.4 ms  req   1862
+lat  80 direct box-dens  125.0 u64                 407.7 ms  req    413
+lat  80 direct box-dens  125.0 u32                 112.8 ms  req    108
+lat  80 direct box-dens  125.0 u16                 111.1 ms  req     25
+lat  80 direct box-dens  125.0 u8                  112.7 ms  req      8
+lat  80 direct box-dens  125.0 o128-1k-4k          232.0 ms  req     55
+lat  80 direct box-dens  125.0 o128-4k-16k         187.1 ms  req     18
+lat  80 direct box-dens  125.0 o128-16k-64k        205.9 ms  req      6
+lat  80 direct box-dens  125.0 o128-64k-256k       204.0 ms  req      2
+lat  80 direct box-dens  125.0 o128-0-16k          198.8 ms  req     23
+lat  80 direct box-dens  125.0 o64-4k-16k          120.0 ms  req     15
+lat  80 direct box-dens  125.0 o64-16k-64k         116.2 ms  req      6
+lat  80 direct box-dens  125.0 o64-64k-256k        131.6 ms  req      2
+lat  80 direct box-dens  125.0 o32-4k-16k          101.4 ms  req     11
+lat  80 direct box-dens  125.0 o32-16k-64k         103.8 ms  req      6
+lat  80 direct box-dens  125.0 o32-64k-256k        119.5 ms  req      2
+lat  80 direct box-dens  125.0 o16-16k-64k         109.1 ms  req      4
+lat  80 direct box-unif  125.0 u128                 88.7 ms  req     36
+lat  80 direct box-unif  125.0 u64                  91.3 ms  req     47
+lat  80 direct box-unif  125.0 u32                  89.7 ms  req     42
+lat  80 direct box-unif  125.0 u16                  85.8 ms  req     22
+lat  80 direct box-unif  125.0 u8                   93.0 ms  req      8
+lat  80 direct box-unif  125.0 o128-1k-4k           85.2 ms  req      8
+lat  80 direct box-unif  125.0 o128-4k-16k          85.6 ms  req      7
+lat  80 direct box-unif  125.0 o128-16k-64k         92.2 ms  req      5
+lat  80 direct box-unif  125.0 o128-64k-256k       115.1 ms  req      3
+lat  80 direct box-unif  125.0 o128-0-16k           86.3 ms  req      7
+lat  80 direct box-unif  125.0 o64-4k-16k           85.6 ms  req      8
+lat  80 direct box-unif  125.0 o64-16k-64k          91.0 ms  req      5
+lat  80 direct box-unif  125.0 o64-64k-256k        109.9 ms  req      3
+lat  80 direct box-unif  125.0 o32-4k-16k           87.1 ms  req      8
+lat  80 direct box-unif  125.0 o32-16k-64k          91.4 ms  req      5
+lat  80 direct box-unif  125.0 o32-64k-256k        109.5 ms  req      3
+lat  80 direct box-unif  125.0 o16-16k-64k          90.2 ms  req      5
+lat  80 direct box-dens  250.0 u128               7003.5 ms  req  10610
+lat  80 direct box-dens  250.0 u64                2011.4 ms  req   2978
+lat  80 direct box-dens  250.0 u32                 519.0 ms  req    656
+lat  80 direct box-dens  250.0 u16                 141.1 ms  req    124
+lat  80 direct box-dens  250.0 u8                  153.9 ms  req     27
+lat  80 direct box-dens  250.0 o128-1k-4k          473.3 ms  req    143
+lat  80 direct box-dens  250.0 o128-4k-16k         419.1 ms  req     45
+lat  80 direct box-dens  250.0 o128-16k-64k        413.6 ms  req     13
+lat  80 direct box-dens  250.0 o128-64k-256k       440.1 ms  req      6
+lat  80 direct box-dens  250.0 o128-0-16k          410.4 ms  req     49
+lat  80 direct box-dens  250.0 o64-4k-16k          221.7 ms  req     45
+lat  80 direct box-dens  250.0 o64-16k-64k         194.1 ms  req     13
+lat  80 direct box-dens  250.0 o64-64k-256k        196.3 ms  req      6
+lat  80 direct box-dens  250.0 o32-4k-16k          147.6 ms  req     43
+lat  80 direct box-dens  250.0 o32-16k-64k         145.4 ms  req     13
+lat  80 direct box-dens  250.0 o32-64k-256k        157.9 ms  req      6
+lat  80 direct box-dens  250.0 o16-16k-64k         123.2 ms  req     12
+lat  80 direct box-unif  250.0 u128                942.0 ms  req   1229
+lat  80 direct box-unif  250.0 u64                 468.8 ms  req    519
+lat  80 direct box-unif  250.0 u32                 190.9 ms  req    204
+lat  80 direct box-unif  250.0 u16                  97.0 ms  req     49
+lat  80 direct box-unif  250.0 u8                  145.7 ms  req     12
+lat  80 direct box-unif  250.0 o128-1k-4k          140.3 ms  req      6
+lat  80 direct box-unif  250.0 o128-4k-16k         135.9 ms  req      6
+lat  80 direct box-unif  250.0 o128-16k-64k        139.4 ms  req      4
+lat  80 direct box-unif  250.0 o128-64k-256k       170.3 ms  req      3
+lat  80 direct box-unif  250.0 o128-0-16k          135.9 ms  req      6
+lat  80 direct box-unif  250.0 o64-4k-16k          107.8 ms  req      6
+lat  80 direct box-unif  250.0 o64-16k-64k         113.3 ms  req      4
+lat  80 direct box-unif  250.0 o64-64k-256k        138.1 ms  req      3
+lat  80 direct box-unif  250.0 o32-4k-16k           90.8 ms  req      5
+lat  80 direct box-unif  250.0 o32-16k-64k          93.4 ms  req      4
+lat  80 direct box-unif  250.0 o32-64k-256k        114.7 ms  req      3
+lat  80 direct box-unif  250.0 o16-16k-64k          90.9 ms  req      4
+-> /home/andrew/scripts/zarr-octree/bench/results/bench_bounds.json

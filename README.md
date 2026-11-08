@@ -3,8 +3,10 @@
 Octree chunk packing for Zarr v3, as a store-layer extension.  Zarr — and
 anything built on it, such as zarr-vectors — keeps seeing an ordinary array on
 a regular chunk grid.  Underneath, the chunks are grouped into objects sized by
-their content: deep, small nodes where the data are dense, shallow, large ones
-where they are sparse.  Option 1 of the octree-chunking proposal
+their content, between a minimum and a maximum weight (bytes, or vertices):
+runs of the octree's Z-order, cut on the coarsest octree boundaries the bounds
+allow — few chunks per object where the data are dense, many where they are
+sparse.  Option 1 of the octree-chunking proposal
 (AllenInstitute/zarr-vectors-py#45), built and tested only as a standalone
 Zarr extension; nothing here depends on zarr-vectors.
 
@@ -15,13 +17,19 @@ import zarr
 from zarr.storage import LocalStore
 from zarr_octree import OctreeConfig, OctreeStore
 
-store = OctreeStore(LocalStore("points.zarr"), arrays={"pts": OctreeConfig(max_depth=5, target_bytes=128 << 10)})
-arr = zarr.create_array(store, name="pts", shape=(128, 128, 128), chunks=(1, 1, 1), dtype="bytes")
+config = OctreeConfig(max_depth=5, min_weight=16_000, max_weight=64_000,   # objects of 16k–64k vertices
+                      unit="vertices", weigh=count_vertices)              # weigh(encoded chunk) -> vertices
+store = OctreeStore(LocalStore("points.zarr"), arrays={"pts": config})
+arr = zarr.create_array(store, name="pts", shape=(32, 32, 32), chunks=(1, 1, 1), dtype="bytes")
 arr.vindex[...] = ...          # any zarr writes
 store.flush()                   # pack buffered writes into nodes (or use `with store:`)
 
-arr = zarr.open_array(OctreeStore(LocalStore("points.zarr")), path="pts")   # any zarr reads
+store = OctreeStore(LocalStore("points.zarr"))
+arr = zarr.open_array(store, path="pts")      # any zarr reads
+store.get_cells("pts", [(3, 4, 5), ...])      # optional: encoded chunks fetched node-wise, without zarr
 ```
+
+Without `unit`/`weigh` the bounds are in encoded bytes.
 
 A store without the extension refuses the array (`MetadataValidationError`)
 instead of silently reading it as empty: zarr-python ignores
@@ -31,34 +39,110 @@ instead of silently reading it as empty: zarr-python ignores
 ## How it works
 
 * **Keys.** Chunk keys `pts/c/i/j/k` never exist in storage.  Nodes live at
-  `pts/o/<depth>/i/j/k`, plus one manifest `pts/o/manifest` listing every
-  node (65 KB for the 1,762 nodes below).
+  `pts/o/<depth>/i/j/k` — named by the octree block each starts at — plus one
+  manifest `pts/o/manifest` listing every node with its first and last
+  occupied Z-order code.
+* **Partition.** Within each root (`2^max_depth` chunks per axis), the
+  occupied chunks in Z-order are cut into runs weighing `min_weight` to
+  `max_weight`, each cut on the coarsest octree boundary available.  Pure
+  octree nodes (format 1) can only bound size from above — a sparse block
+  next to a dense sibling stays small — so format 2 merges siblings along the
+  Z-order.  A single chunk heavier than `max_weight` is a node of its own.
 * **Reads.** The manifest resolves a chunk key to its node — or to "empty"
   with no request.  A node is fetched once per query however many of its
-  chunks zarr asks for (concurrent requests share one fetch), and cached.
+  chunks are asked for (concurrent requests share one fetch), and cached.
+  `get_cells` returns encoded chunks node-wise without zarr's per-chunk work.
 * **Writes.** Buffered in memory, then packed per root: an edit rewrites only
-  the nodes it touches; a write outside every node, or one that grows a node
-  past the target, rebuilds that root top-down.  `repack()` re-merges after
-  deletions.
+  the nodes whose ranges it touches; one that grows a node past `max_weight`
+  re-cuts that root.  `repack()` re-merges after deletions.
 * **Anything else passes through**: other arrays, groups, attributes; sharded
   arrays inside an octree array (byte-range reads are served from the chunk).
 
 ## Tests
 
-`pytest` — 28 tests, all passing on **zarr 3.4.0 and 3.2.1**.  They go through
+`pytest` — 35 tests, all passing on **zarr 3.4.0 and 3.2.1**.  They go through
 zarr's public API only: round trips of vlen point cells and of numeric arrays
 (2-D, 3-D, 4-D; `/` and `.` separators; multi-cell chunks; sharded chunks),
 edits (overwrite, delete, add in empty space, growth past the target),
 reads of buffered writes, read-only views, metadata rewrites (attrs, resize)
 keeping the extension, listing equal to a regular store's, `convert`,
 overwrite, auto-flush, plain zarr refusing the array, one storage request per
-node, and the partition invariants (each cell in exactly one node, no node an
-ancestor of another).
+node, the min/max bounds in bytes and in a custom unit (vertices), `get_cells`
+against zarr, Morton codes, and the partition invariants (each cell in exactly
+one node, runs contiguous and cut on octree boundaries).
 
 ```
 ~/.conda/envs/shapetensors/bin/python -m pytest -q      # zarr 3.4.0
 ~/.conda/envs/zarr-vectors/bin/python -m pytest -q      # zarr 3.2.1
 ```
+
+## Chunk layouts compared: bounded octree runs against uniform grids
+
+`bench/bench_bounds.py` (figures: `bench/figures_bounds.py`) stores the same
+3.99 M densMAP points (below) as five **uniform grids** — 128³ to 8³ chunks,
+7.8 to 125 units wide — and twelve **octree-run layouts**: a 128³, 64³, 32³ or
+16³ leaf grid packed into runs bounded in vertices (`unit="vertices"`).  Each
+layout is read two ways: **through zarr** (`arr.vindex`, as zarr-vectors
+reads today), and **directly** (chunks or nodes fetched concurrently and
+decoded here, octree via `get_cells`) — what the layout costs without zarr's
+per-chunk work.  Queries: random vertices (1–16,384), whole objects (compact
+/ cluster / curve, 1k and 10k vertices) and boxes (15.6–250 units, dense or
+uniformly placed), 5 each; vertex addresses are looked up in memory (the
+same for every layout), only the vertex reads are timed, and every result is
+checked against the source.  Latency: none, or 20 / 80 ms plus 100 MB/s per
+request, 128 requests in flight.
+
+![object sizes](bench/results/figures/bounds_objects.png)
+
+**The bounds hold where the leaf allows.**  With 128³ leaves and 4k–16k
+vertices, all 348 objects hold 4,055–15,999 vertices (CV 0.28); uniform grids
+range over 4–6 orders of magnitude (CV 4.7–15).  A leaf chunk cannot be
+split, so with coarser leaves the maximum is the densest leaf (457k vertices
+for 32³ leaves) — the leaf size is the floor of the size control.
+
+![scores](bench/results/figures/bounds_scores.png)
+
+Geometric mean over all 17 query families of the median time (ms); best of
+each kind:
+
+| reader | latency | best uniform | best octree runs | octree 32³ leaves, 16k–64k |
+|---|---|---|---|---|
+| direct | local | 13 (8³) | **11** (16³, 16k–64k) | 12 |
+| direct | 20 ms | 56 (16³) | **50** (32³, 4k–16k) | 52 |
+| direct | 80 ms | 127 (16³) | **117** (32³, 16k–64k) | **117** |
+| zarr | local | **17** (8³) | 18 (16³, 16k–64k) | 25 |
+| zarr | 20 ms | 61 (16³) | **59** (16³, 16k–64k) | 68 |
+
+* **Read directly, bounded runs beat every uniform grid**, by 8–15 %, and
+  one configuration stays near the top everywhere: 32³ leaves with
+  16k–64k-vertex runs is within 12 % of the best layout at every latency,
+  while the best uniform grid changes with latency (8³ locally, 16³ with
+  latency) and is up to 33 % off the best somewhere.  Per query family (20 ms)
+  it wins most on scattered and mid-size reads — 32 random vertices 0.68×,
+  1,024 0.78×, 10k-vertex compact objects 0.75×, 62–125-unit dense boxes
+  0.75× — and loses up to 15 % on sparse boxes and small cluster objects,
+  where a run can reach beyond the box and read more than a 62-unit chunk.
+* **Through zarr it is a tie**: the best runs (16³ leaves, 16k–64k) are
+  within 5 % of the best layout at both latencies, the best uniform grid
+  within 11 %.  Zarr's per-chunk cost (~0.3 ms) still rewards coarse leaves,
+  which is why 128³-leaf runs are 3–7× slower than the 16³–32³ ones through
+  zarr, but only 1.2–2.4× slower when read directly.
+* **Small leaves pay for themselves only up to a point**: 128³ leaves give the
+  tightest objects but every query touches many leaf chunks, each a separate
+  zstd frame to decode.  The optimum here is 32³ leaves (31 units) packed
+  into 16k–64k-vertex runs.
+* 4k–16k and 16k–64k are within 5 % of each other at every leaf size (4k–16k
+  ahead at 20 ms, 16k–64k locally and at 80 ms); 64k–256k reads too much per
+  object, 1k–4k makes too many.
+
+So yes: a bounded configuration is more efficient than any uniform chunking —
+modestly (≈10 %) on time, much more on object-size evenness (CV 0.3–1.1 against
+5–15) and robustly across latencies — but only for a reader that takes nodes
+(`get_cells`).  Through zarr's chunk API the leaf grid is what zarr pays for,
+and the best uniform grid is as good.
+
+The sections below are **format 1** (whole octree nodes, a byte target, no
+minimum; commit `5bf1110`): they compare four layouts through zarr only.
 
 ## Benchmark
 
@@ -227,8 +311,10 @@ Median ms, octree / sharded / leaf / coarse (8 queries each):
 ## Not done yet
 
 Concurrent writers; atomic updates (the order is nodes, manifest, deletions);
-sibling packing; a node-level read API; chunk key encodings other than
-`default`; object-store tests on real S3/GCS rather than injected latency.
+chunk key encodings other than `default`; object-store tests on real S3/GCS
+rather than injected latency; compressing a node as a whole (each chunk is
+still its own zstd frame, which is what small leaves cost when read
+directly); zarr-vectors reading through `get_cells`.
 
 ## Layout
 
@@ -239,7 +325,9 @@ src/zarr_octree/instrument.py  counting / latency store for tests and benchmarks
 tests/                         pytest
 bench/make_points.py           densMAP point cloud
 bench/bench.py                 layouts, object sizes, sweep, queries
-bench/bench_index.py           spatial and vertex-index queries (after bench.py)
+bench/bench_index.py           spatial and vertex-index queries (format 1, after bench.py)
+bench/bench_bounds.py          uniform grids against min/max-bounded runs (format 2)
 bench/figures.py               figures -> bench/results/figures/
 bench/figures_index.py         figures for bench_index.py
+bench/figures_bounds.py        figures for bench_bounds.py
 ```

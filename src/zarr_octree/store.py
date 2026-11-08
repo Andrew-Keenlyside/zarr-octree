@@ -3,10 +3,11 @@
 Zarr above this store sees an ordinary array on a regular chunk grid: it
 reads and writes chunk keys ``<array>/c/i/j/k`` exactly as it would on any
 store.  Underneath, the chunks of every octree array are grouped into node
-objects ``<array>/o/<depth>/i/j/k`` sized to about ``target_bytes``, plus one
-occupancy manifest ``<array>/o/manifest``.  Dense regions get small (deep)
-nodes and sparse regions large (shallow) ones, so every stored object holds
-a similar amount of data whatever the density of the region it covers.
+objects ``<array>/o/<depth>/i/j/k`` -- runs of the octree's Z-order whose
+weight lies between ``min_weight`` and ``max_weight`` -- plus one manifest
+``<array>/o/manifest``.  Dense regions get runs of few (small) chunks and
+sparse regions runs of many, so every stored object holds a similar amount of
+data whatever the density of the region it covers.
 
 Any other array or group in the store passes through untouched.
 
@@ -19,9 +20,10 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import functools
 import json
 from collections import OrderedDict
-from collections.abc import AsyncIterator, Iterable
+from collections.abc import AsyncIterator, Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -41,12 +43,14 @@ from zarr_octree.tree import (
     Node,
     NodeInfo,
     NodeKey,
-    build_partition,
+    block_of,
+    boundary_of,
+    build_runs,
     decode_manifest,
     decode_node,
     encode_manifest,
     encode_node,
-    node_of,
+    morton,
     root_of,
 )
 
@@ -61,22 +65,32 @@ class OctreeConfig:
     """How one array is packed.
 
     Args:
-        max_depth: A root node spans ``2 ** max_depth`` chunks per axis; the
-            deepest node is one chunk.
-        target_bytes: A node larger than this is split into its children.
+        max_depth: A root spans ``2 ** max_depth`` chunks per axis; nodes never
+            cross a root, so an edit rewrites at most one root.
+        max_weight: A node weighs at most this, unless it is a single chunk.
+        min_weight: A node weighs at least this where its root allows (see
+            :mod:`zarr_octree.tree`).
+        unit: What the weights count.  ``"bytes"``: the encoded chunk plus its
+            16-byte entry in the node index.  Any other name needs ``weigh``.
+        weigh: ``weigh(encoded_chunk) -> weight`` for a custom ``unit`` (the
+            vertices in a chunk, say).  Writers only; not stored.
     """
 
     max_depth: int = 5
-    target_bytes: int = 1 << 20
+    max_weight: float = 1 << 20
+    min_weight: float = 0
+    unit: str = "bytes"
+    weigh: Callable[[bytes], float] | None = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
-        if not 0 <= self.max_depth <= 20:
-            raise ValueError(f"max_depth must be in [0, 20], got {self.max_depth}")
-        if self.target_bytes <= 0:
-            raise ValueError("target_bytes must be positive")
+        if not 0 <= self.max_depth <= 21:
+            raise ValueError(f"max_depth must be in [0, 21], got {self.max_depth}")
+        if self.max_weight <= 0 or not 0 <= self.min_weight <= self.max_weight:
+            raise ValueError("need 0 <= min_weight <= max_weight and max_weight > 0")
 
     def to_json(self) -> dict[str, Any]:
-        return {"version": FORMAT_VERSION, "max_depth": self.max_depth, "target_bytes": self.target_bytes}
+        return {"version": FORMAT_VERSION, "max_depth": self.max_depth, "min_weight": self.min_weight,
+                "max_weight": self.max_weight, "unit": self.unit}
 
 
 @dataclass
@@ -88,7 +102,8 @@ class _Array:
     sep: str
     config: OctreeConfig
     nodes: dict[NodeKey, NodeInfo] | None = None  # None until the manifest is read
-    by_root: dict[tuple[int, ...], set[NodeKey]] = field(default_factory=dict)
+    # Per root: the code where each node starts (sorted) and the nodes in that order.
+    by_root: dict[tuple[int, ...], tuple[np.ndarray, list[NodeKey]]] = field(default_factory=dict)
     buffer: dict[tuple[int, ...], bytes | None] = field(default_factory=dict)  # None = deleted
     buffer_bytes: int = 0
 
@@ -98,18 +113,56 @@ class _Array:
 
     def set_nodes(self, nodes: dict[NodeKey, NodeInfo]) -> None:
         self.nodes = nodes
-        self.by_root = {}
+        grouped: dict[tuple[int, ...], list[tuple[int, NodeKey]]] = {}
         for key in nodes:
-            self.by_root.setdefault(root_of(key), set()).add(key)
+            grouped.setdefault(root_of(key), []).append((boundary_of(key, self.max_depth), key))
+        self.by_root = {}
+        for root, items in grouped.items():
+            items.sort()
+            self.by_root[root] = (np.array([b for b, _ in items], dtype=np.uint64), [k for _, k in items])
+
+    def root(self, cell: tuple[int, ...]) -> tuple[int, ...]:
+        return tuple(c >> self.max_depth for c in cell)
+
+    def code(self, cell: tuple[int, ...]) -> int:
+        """The cell's Morton code within its root (scalar; per-byte tables, as :func:`morton`)."""
+        n, mask = self.ndim, (1 << self.max_depth) - 1
+        table = _spread_table(n)
+        code = 0
+        for a, c in enumerate(cell):
+            c &= mask
+            spread, shift = 0, 0
+            while c:
+                spread |= table[c & 255] << shift
+                c >>= 8
+                shift += 8 * n
+            code |= spread << (n - 1 - a)
+        return code
+
+    def owner(self, cell: tuple[int, ...]) -> NodeKey | None:
+        """The node whose range of codes contains ``cell`` (occupied or not)."""
+        entry = self.by_root.get(self.root(cell))
+        if entry is None:
+            return None
+        bounds, keys = entry
+        i = int(np.searchsorted(bounds, np.uint64(self.code(cell)), side="right")) - 1
+        return keys[i] if i >= 0 else None
 
     def find(self, cell: tuple[int, ...]) -> NodeKey | None:
-        """The stored node holding ``cell``, or ``None`` if no node covers it."""
+        """The stored node that may hold ``cell``, or ``None`` if the manifest rules it out."""
         assert self.nodes is not None
-        for depth in range(self.max_depth + 1):
-            key = (depth, node_of(cell, depth, self.max_depth))
-            if key in self.nodes:
-                return key
-        return None
+        key = self.owner(cell)
+        if key is None:
+            return None
+        info = self.nodes[key]
+        return key if info.first <= self.code(cell) <= info.last else None
+
+    def weigh(self, data: bytes) -> float:
+        if self.config.unit == "bytes":
+            return len(data) + 16  # the cell's code and offset in the node index
+        if self.config.weigh is None:
+            raise ValueError(f"{self.path!r}: writing weights in {self.config.unit!r} needs OctreeConfig(weigh=...)")
+        return float(self.config.weigh(data))
 
     def join(self, rel: str) -> str:
         return f"{self.path}/{rel}" if self.path else rel
@@ -120,6 +173,12 @@ class _Array:
 
     def cell_key(self, cell: tuple[int, ...]) -> str:
         return self.join("c" + self.sep + self.sep.join(map(str, cell)))
+
+
+@functools.cache
+def _spread_table(ndim: int) -> list[int]:
+    """``table[v]``: the 8 bits of ``v`` spread ``ndim`` apart."""
+    return [sum(((v >> b) & 1) << (b * ndim) for b in range(8)) for v in range(256)]
 
 
 class _NodeCache:
@@ -174,12 +233,6 @@ def _parse_cell(parts: list[str], ndim: int) -> tuple[int, ...] | None:
     if len(parts) != ndim or not all(p.isdigit() for p in parts):
         return None
     return tuple(int(p) for p in parts)
-
-
-def _local(cell: tuple[int, ...], key: NodeKey, max_depth: int) -> tuple[int, ...]:
-    depth, coords = key
-    shift = max_depth - depth
-    return tuple(c - (n << shift) for c, n in zip(cell, coords))
 
 
 class OctreeStore(Store):
@@ -286,6 +339,8 @@ class OctreeStore(Store):
         ndim = len(doc["shape"])
         if ndim == 0:
             raise ValueError(f"{path!r}: a 0-d array has nothing to partition")
+        if ndim * config.max_depth > 64:
+            raise ValueError(f"{path!r}: {ndim}-d codes of max_depth {config.max_depth} do not fit in 64 bits")
         state = _Array(path=path, ndim=ndim, sep=sep, config=config)
         self._arrays[path] = state
         return state
@@ -299,18 +354,21 @@ class OctreeStore(Store):
             return None  # not cached: the array may be created later
         doc = json.loads(buf.to_bytes())
         if EXTENSION in doc:
-            return self._register(path, doc, self._config_from(doc))
+            return self._register(path, doc, self._config_from(path, doc))
         self._arrays[path] = None
         return None
 
-    @staticmethod
-    def _config_from(doc: dict[str, Any]) -> OctreeConfig:
+    def _config_from(self, path: str, doc: dict[str, Any]) -> OctreeConfig:
         for t in doc.get("storage_transformers", ()):
             if isinstance(t, dict) and t.get("name") == EXTENSION:
                 cfg = dict(t.get("configuration", {}))
                 if cfg.pop("version", FORMAT_VERSION) != FORMAT_VERSION:
                     raise ValueError("unsupported zarr_octree format version")
-                return OctreeConfig(**cfg)
+                stored = OctreeConfig(**cfg)
+                given = self._configured.get(path)
+                if given is not None and given.weigh is not None and given.unit == stored.unit:
+                    stored = OctreeConfig(**cfg, weigh=given.weigh)  # a writer's weigher for the stored unit
+                return stored
         raise ValueError("zarr_octree field without a zarr_octree storage transformer")
 
     @staticmethod
@@ -405,7 +463,23 @@ class OctreeStore(Store):
         if key is None:
             return None
         node = await self._node(state, key)
-        return node.cell(_local(cell, key, state.max_depth))
+        return node.cell(state.code(cell))
+
+    async def aget_cells(self, path: str, cells: Iterable[tuple[int, ...]]) -> list[bytes | None]:
+        """The encoded bytes of each chunk in ``cells`` (``None`` if absent), without zarr.
+
+        An optional fast path for readers that decode chunks themselves: each
+        node is fetched once, concurrently, and no per-chunk zarr machinery
+        runs.  Zarr's own reads are unaffected.
+        """
+        state = await self._array(path.strip("/"))
+        if state is None:
+            raise KeyError(f"no octree array at {path!r}")
+        return list(await asyncio.gather(*(self._read_cell(state, tuple(int(x) for x in c)) for c in cells)))
+
+    def get_cells(self, path: str, cells: Iterable[tuple[int, ...]]) -> list[bytes | None]:
+        """Synchronous :meth:`aget_cells`."""
+        return sync(self.aget_cells(path, cells))
 
     async def get(
         self, key: str, prototype: BufferPrototype, byte_range: ByteRequest | None = None
@@ -419,7 +493,7 @@ class OctreeStore(Store):
             if EXTENSION not in doc:
                 return buf if byte_range is None else prototype.buffer.from_bytes(_slice(buf.to_bytes(), byte_range))
             path = key[: -len(META)].rstrip("/")
-            self._register(path, doc, self._config_from(doc))
+            self._register(path, doc, self._config_from(path, doc))
             data = json.dumps(self._strip(doc), indent=2).encode()
             return prototype.buffer.from_bytes(_slice(data, byte_range))
         routed = await self._route(key)
@@ -560,23 +634,22 @@ class OctreeStore(Store):
         assert state.nodes is not None
         updates, state.buffer, state.buffer_bytes = state.buffer, {}, 0
         D = state.max_depth
-        target = state.config.target_bytes
         per_root: dict[tuple[int, ...], dict[tuple[int, ...], bytes | None]] = {r: {} for r in rebuild or ()}
         for cell, data in updates.items():
-            per_root.setdefault(node_of(cell, 0, D), {})[cell] = data
+            per_root.setdefault(state.root(cell), {})[cell] = data
 
-        writes: dict[NodeKey, tuple[bytes, int]] = {}  # node -> (encoded, n cells)
+        writes: dict[NodeKey, tuple[bytes, NodeInfo]] = {}
         removed: set[NodeKey] = set()
         for root, ups in per_root.items():
-            local = None if rebuild and root in rebuild else await self._patch(state, ups, target)
+            local = None if rebuild and root in rebuild else await self._patch(state, ups)
             if local is not None:
                 for key, cells in local.items():
                     if cells:
-                        writes[key] = (self._encode(state, key, cells), len(cells))
+                        writes[key] = self._encode(state, key, cells)
                     else:
                         removed.add(key)
                 continue
-            old = state.by_root.get(root, set())
+            old = set(state.by_root.get(root, (None, []))[1])
             cells: dict[tuple[int, ...], bytes] = {}
             for node in await asyncio.gather(*(self._node(state, k) for k in old)):
                 cells.update(node.cells())
@@ -593,8 +666,8 @@ class OctreeStore(Store):
         await asyncio.gather(
             *(self._store.set(state.node_path(k), default_buffer_prototype().buffer.from_bytes(b)) for k, (b, _) in writes.items())
         )
-        for key, (blob, n) in writes.items():
-            state.nodes[key] = NodeInfo(len(blob), n)
+        for key, (_, info) in writes.items():
+            state.nodes[key] = info
             self._cache.drop((state.path, key))
         for key in removed - set(writes):
             state.nodes.pop(key, None)
@@ -605,18 +678,18 @@ class OctreeStore(Store):
         await asyncio.gather(*(self._store.delete(state.node_path(k)) for k in removed - set(writes)))
 
     async def _patch(
-        self, state: _Array, ups: dict[tuple[int, ...], bytes | None], target: int
+        self, state: _Array, ups: dict[tuple[int, ...], bytes | None]
     ) -> dict[NodeKey, dict[tuple[int, ...], bytes]] | None:
-        """Apply ``ups`` by rewriting only the nodes that hold those cells.
+        """Apply ``ups`` by rewriting only the nodes whose ranges hold those cells.
 
-        Returns the new cell contents of each touched node, or ``None`` when a
-        cell lies outside every node or a node outgrows ``target``; the
+        Returns the new cell contents of each touched node, or ``None`` when
+        the root has no nodes yet or a node outgrows ``max_weight``; the
         caller then rebuilds the whole root.
         """
         assert state.nodes is not None
         touched: dict[NodeKey, dict[tuple[int, ...], bytes | None]] = {}
         for cell, data in ups.items():
-            key = state.find(cell)
+            key = state.owner(cell)
             if key is None:
                 if data is None:
                     continue  # deleting a cell that was never stored
@@ -631,33 +704,36 @@ class OctreeStore(Store):
                     cells.pop(cell, None)
                 else:
                     cells[cell] = data
-            size = sum(len(v) for v in cells.values()) + self._overhead(state) * len(cells)
-            if size > target and key[0] < state.max_depth:
+            if len(cells) > 1 and sum(state.weigh(v) for v in cells.values()) > state.config.max_weight:
                 return None
             out[key] = cells
         return out
 
-    @staticmethod
-    def _overhead(state: _Array) -> int:
-        return 4 * state.ndim + 8  # local coords + offset per cell in the node index
-
-    def _encode(self, state: _Array, key: NodeKey, cells: dict[tuple[int, ...], bytes]) -> bytes:
+    def _encode(self, state: _Array, key: NodeKey, cells: dict[tuple[int, ...], bytes]) -> tuple[bytes, NodeInfo]:
         depth, coords = key
-        shift = state.max_depth - depth
         cs = list(cells)
-        local = np.array([[c - (n << shift) for c, n in zip(cell, coords)] for cell in cs], dtype=np.int64)
-        return encode_node(depth, coords, local.reshape(len(cs), state.ndim), [cells[c] for c in cs], max_depth=state.max_depth)
+        codes = np.array([state.code(c) for c in cs], dtype=np.uint64)
+        blob = encode_node(depth, coords, codes, [cells[c] for c in cs], max_depth=state.max_depth)
+        weight = float(sum(state.weigh(cells[c]) for c in cs))
+        return blob, NodeInfo(len(blob), len(cs), int(codes.min()), int(codes.max()), weight)
 
-    def _partition(self, state: _Array, cells: dict[tuple[int, ...], bytes]) -> dict[NodeKey, tuple[bytes, int]]:
+    def _partition(self, state: _Array, cells: dict[tuple[int, ...], bytes]) -> dict[NodeKey, tuple[bytes, NodeInfo]]:
+        """Cut one root's cells into runs and encode them."""
         if not cells:
             return {}
+        D = state.max_depth
         cs = list(cells)
-        coords = np.array(cs, dtype=np.int64).reshape(len(cs), state.ndim)
-        sizes = np.array([len(cells[c]) for c in cs]) + self._overhead(state)
-        out: dict[NodeKey, tuple[bytes, int]] = {}
-        for depth, ncoords, members in build_partition(coords, sizes, state.max_depth, state.config.target_bytes):
-            key = (depth, ncoords)
-            out[key] = (self._encode(state, key, {cs[i]: cells[cs[i]] for i in members}), len(members))
+        root = np.array(state.root(cs[0]), dtype=np.int64)
+        local = np.array(cs, dtype=np.int64).reshape(len(cs), state.ndim) - (root << D)
+        codes = morton(local, D)
+        order = np.argsort(codes)
+        weights = np.array([state.weigh(cells[cs[i]]) for i in order])
+        out: dict[NodeKey, tuple[bytes, NodeInfo]] = {}
+        cfg = state.config
+        for boundary, a, b in build_runs(codes[order], weights, state.ndim, cfg.min_weight, cfg.max_weight):
+            depth, at = block_of(boundary, state.ndim, D)
+            key = (depth, tuple(int(x) for x in (root << depth) + at))
+            out[key] = self._encode(state, key, {cs[i]: cells[cs[i]] for i in order[a:b]})
         return out
 
     # -- listing ------------------------------------------------------------

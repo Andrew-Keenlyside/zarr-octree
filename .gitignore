@@ -4,3 +4,4 @@ bench/_stores/
 bench/_data/
 bench/_stores_smoke/
 bench/results/*.npy
+bench/_stores_bounds/

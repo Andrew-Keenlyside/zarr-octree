@@ -1,4 +1,4 @@
-"""Octree partition of a sparse chunk grid, and the on-disk node and manifest formats.
+"""Partition of a sparse chunk grid into runs of an octree's Z-order, and the on-disk formats.
 
 Pure numpy and ``struct``: no zarr, no I/O.
 
@@ -6,11 +6,20 @@ Terms used throughout:
 
 * **cell** -- one chunk of the logical Zarr array, addressed by its chunk
   coordinates.  Zarr reads and writes cells; it never sees nodes.
-* **node** -- one stored object.  A node at depth ``d`` covers a block of
-  ``2 ** (max_depth - d)`` cells along every axis and holds the encoded bytes
-  of every occupied cell in that block.  Depth 0 nodes are the roots.
-* **partition** -- the set of stored nodes.  Each occupied cell is in exactly
-  one node, so no stored node is an ancestor of another.
+* **root** -- a block of ``2 ** max_depth`` cells along every axis.  Roots
+  are partitioned independently, so an edit never reaches past its root.
+* **code** -- a cell's Morton (Z-order) code within its root: the bits of its
+  local coordinates interleaved.  Every aligned octree block of a root is one
+  contiguous range of codes.
+* **node** -- one stored object: the occupied cells of a contiguous range of
+  codes (a *run*).  A run's range starts on an octree boundary, chosen as
+  coarse as the size bounds allow, so a run is a union of a few octree blocks.
+  The node is named by the largest octree block that starts where it starts.
+* **weight** -- what the size bounds count: encoded bytes by default, or
+  anything a writer measures per cell (vertices, say).  Every node weighs at
+  most ``max_weight`` unless it is a single cell, and at least ``min_weight``
+  unless its root holds less in total or a lighter remainder could not be
+  merged without exceeding ``max_weight``.
 """
 
 from __future__ import annotations
@@ -22,65 +31,69 @@ import numpy as np
 
 NODE_MAGIC = b"ZOCN"
 MANIFEST_MAGIC = b"ZOCM"
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 _NODE_HEADER = struct.Struct("<4sBBBBI")  # magic, version, ndim, depth, max_depth, n_cells
 _MANIFEST_HEADER = struct.Struct("<4sBBBxQ")  # magic, version, ndim, max_depth, n_nodes
 
-NodeKey = tuple[int, tuple[int, ...]]  # (depth, node coords at that depth)
+NodeKey = tuple[int, tuple[int, ...]]  # (depth, coords of the octree block the node starts at)
 
 
-def build_partition(
-    coords: np.ndarray,
-    nbytes: np.ndarray,
-    max_depth: int,
-    target_bytes: int,
-) -> list[tuple[int, tuple[int, ...], np.ndarray]]:
-    """Split occupied cells into nodes of at most ``target_bytes`` each.
-
-    Top-down: every root holding more than ``target_bytes`` is split into its
-    ``2 ** ndim`` children, recursively, until a node fits or reaches
-    ``max_depth`` (one cell per node, which may then exceed the target).
-
-    Args:
-        coords: ``(n, ndim)`` integer cell coordinates, all occupied.
-        nbytes: ``(n,)`` encoded size of each cell.
-        max_depth: Depth of the finest node; a root spans ``2 ** max_depth`` cells per axis.
-        target_bytes: Largest node that is not split further.
-
-    Returns:
-        ``[(depth, node_coords, cell_indices), ...]``, one entry per node, where
-        ``cell_indices`` index into ``coords``.
-    """
-    coords = np.asarray(coords, dtype=np.int64)
-    nbytes = np.asarray(nbytes, dtype=np.int64)
-    if coords.ndim != 2 or len(coords) != len(nbytes):
-        raise ValueError("coords must be (n, ndim) and match nbytes")
-    if (coords < 0).any():
-        raise ValueError("cell coordinates must be non-negative")
-    out: list[tuple[int, tuple[int, ...], np.ndarray]] = []
-    pending = np.arange(len(coords))
-    for depth in range(max_depth + 1):
-        if len(pending) == 0:
-            break
-        node = coords[pending] >> (max_depth - depth)
-        uniq, inverse = np.unique(node, axis=0, return_inverse=True)
-        inverse = inverse.reshape(-1)
-        size = np.bincount(inverse, weights=nbytes[pending], minlength=len(uniq))
-        keep = (size <= target_bytes) | (depth == max_depth)
-        order = np.argsort(inverse, kind="stable")
-        bounds = np.searchsorted(inverse[order], np.arange(len(uniq) + 1))
-        for g in np.flatnonzero(keep):
-            members = pending[order[bounds[g] : bounds[g + 1]]]
-            out.append((depth, tuple(int(c) for c in uniq[g]), members))
-        pending = pending[~keep[inverse]]
-    return out
+# -- Morton codes ---------------------------------------------------------------
 
 
-def node_of(cell: tuple[int, ...], depth: int, max_depth: int) -> tuple[int, ...]:
-    """Coordinates of the depth-``depth`` node that contains ``cell``."""
+def morton(local: np.ndarray, bits: int) -> np.ndarray:
+    """Z-order codes of ``(m, ndim)`` local coordinates in ``[0, 2 ** bits)``; axis 0 is most significant."""
+    local = np.asarray(local, dtype=np.uint64)
+    m, n = local.shape
+    if n * bits > 64:
+        raise ValueError(f"{n}-d codes of {bits} bits per axis do not fit in 64 bits")
+    code = np.zeros(m, dtype=np.uint64)
+    one = np.uint64(1)
+    for b in range(bits):
+        for a in range(n):
+            code |= ((local[:, a] >> np.uint64(b)) & one) << np.uint64(b * n + n - 1 - a)
+    return code
+
+
+def unmorton(code: np.ndarray, ndim: int, bits: int) -> np.ndarray:
+    """Inverse of :func:`morton`: ``(m, ndim)`` int64 local coordinates."""
+    code = np.asarray(code, dtype=np.uint64)
+    out = np.zeros((len(code), ndim), dtype=np.uint64)
+    one = np.uint64(1)
+    for b in range(bits):
+        for a in range(ndim):
+            out[:, a] |= ((code >> np.uint64(b * ndim + ndim - 1 - a)) & one) << np.uint64(b)
+    return out.astype(np.int64)
+
+
+def _high_bit(x: np.ndarray) -> np.ndarray:
+    """Index of the highest set bit of each (non-zero) uint64."""
+    x = np.asarray(x, dtype=np.uint64).copy()
+    h = np.zeros(len(x), dtype=np.int64)
+    for s in (32, 16, 8, 4, 2, 1):
+        big = (x >> np.uint64(s)) != 0
+        h[big] += s
+        x[big] >>= np.uint64(s)
+    return h
+
+
+def block_of(boundary: int, ndim: int, max_depth: int) -> tuple[int, np.ndarray]:
+    """The largest octree block starting at code ``boundary``: ``(depth, local coords at that depth)``."""
+    if boundary == 0:
+        return 0, np.zeros(ndim, dtype=np.int64)
+    tz = (boundary & -boundary).bit_length() - 1
+    depth = max_depth - min(tz // ndim, max_depth)
+    local = unmorton(np.array([boundary], dtype=np.uint64), ndim, max_depth)[0]
+    return depth, local >> (max_depth - depth)
+
+
+def boundary_of(key: NodeKey, max_depth: int) -> int:
+    """The code where node ``key`` starts, within its root."""
+    depth, coords = key
     shift = max_depth - depth
-    return tuple(c >> shift for c in cell)
+    local = np.array(coords, dtype=np.int64) - ((np.array(coords, dtype=np.int64) >> depth) << depth)
+    return int(morton((local << shift)[None], max_depth)[0])
 
 
 def root_of(key: NodeKey) -> tuple[int, ...]:
@@ -89,47 +102,97 @@ def root_of(key: NodeKey) -> tuple[int, ...]:
     return tuple(c >> depth for c in coords)
 
 
+# -- partition --------------------------------------------------------------------
+
+
+def build_runs(
+    codes: np.ndarray,
+    weights: np.ndarray,
+    ndim: int,
+    min_weight: float,
+    max_weight: float,
+) -> list[tuple[int, int, int]]:
+    """Cut one root's occupied cells, in code order, into runs of bounded weight.
+
+    Greedy along the Z-order: each run takes the cells from where the last one
+    stopped, and ends at the candidate boundary that keeps its weight within
+    ``[min_weight, max_weight]`` and lies on the coarsest octree boundary
+    (ties go to the heavier run).  A boundary that would leave a remainder
+    lighter than ``min_weight`` is avoided when possible.
+
+    Args:
+        codes: ``(m,)`` sorted, unique codes of the occupied cells.
+        weights: ``(m,)`` weight of each cell.
+
+    Returns:
+        ``[(boundary, start, stop), ...]``: the code where each run starts (an
+        octree boundary; 0 for the first) and its cells ``codes[start:stop]``.
+    """
+    codes = np.asarray(codes, dtype=np.uint64)
+    m = len(codes)
+    if m == 0:
+        return []
+    if m > 1 and not (codes[1:] > codes[:-1]).all():
+        raise ValueError("codes must be sorted and unique")
+    W = np.concatenate([[0.0], np.cumsum(np.asarray(weights, dtype=np.float64))])
+    out: list[tuple[int, int, int]] = []
+    boundary, i = 0, 0
+    while i < m:
+        if W[m] - W[i] <= max_weight:
+            out.append((boundary, i, m))
+            break
+        jmax = max(i + 1, int(np.searchsorted(W, W[i] + max_weight, side="right")) - 1)
+        js = np.arange(i + 1, jmax + 1)  # run = cells[i:j]; j < m because the rest exceeds max_weight
+        w = W[js] - W[i]
+        tail = W[m] - W[js]
+        ok = (w >= min_weight) & ~((tail > 0) & (tail < min_weight))
+        if not ok.any():
+            ok = w >= min_weight
+        if not ok.any():
+            ok = js == jmax
+        split = _high_bit(codes[js - 1] ^ codes[js])  # the boundary between j-1 and j is aligned to 2**split
+        level = split // ndim
+        score = np.where(ok, level * (W[m] + 1.0) + w, -1.0)
+        k = int(np.argmax(score))
+        j = int(js[k])
+        out.append((boundary, i, j))
+        s = np.uint64(split[k])
+        boundary = int((codes[j] >> s) << s)
+        i = j
+    return out
+
+
+# -- node objects ---------------------------------------------------------------
+
+
 @dataclass
 class Node:
-    """A decoded node: where each cell's bytes sit inside the node object.
-
-    Cells are looked up by their C-order linear index within the node, which
-    the stored (sorted) local coordinates already follow, so a lookup is one
-    binary search and decoding does no per-cell Python work.
-    """
+    """A decoded node: where each cell's bytes sit inside the node object."""
 
     depth: int
     max_depth: int
     coords: tuple[int, ...]
-    local: np.ndarray  # (m, ndim) local cell coords, C order
+    codes: np.ndarray  # (m,) sorted codes of the cells within the root
     offsets: np.ndarray  # (m + 1,) absolute positions in ``data``
     data: memoryview
 
-    def __post_init__(self) -> None:
-        self._side = 1 << (self.max_depth - self.depth)
-        if len(self.local):
-            self._lin = np.ravel_multi_index(self.local.T.astype(np.int64), (self._side,) * len(self.coords))
-        else:
-            self._lin = np.zeros(0, dtype=np.int64)
-
     def __len__(self) -> int:
-        return len(self.local)
+        return len(self.codes)
 
-    def cell(self, local: tuple[int, ...]) -> bytes | None:
-        lin = 0
-        for c in local:
-            if not 0 <= c < self._side:
-                return None
-            lin = lin * self._side + c
-        i = int(np.searchsorted(self._lin, lin))
-        if i == len(self._lin) or self._lin[i] != lin:
+    @property
+    def root(self) -> tuple[int, ...]:
+        return tuple(c >> self.depth for c in self.coords)
+
+    def cell(self, code: int) -> bytes | None:
+        i = int(np.searchsorted(self.codes, np.uint64(code)))
+        if i == len(self.codes) or int(self.codes[i]) != code:
             return None
         return bytes(self.data[self.offsets[i] : self.offsets[i + 1]])
 
     def absolute(self) -> np.ndarray:
         """``(m, ndim)`` absolute coordinates of the cells in the node."""
-        base = np.array(self.coords, dtype=np.int64) << (self.max_depth - self.depth)
-        return self.local.astype(np.int64) + base
+        base = np.array(self.root, dtype=np.int64) << self.max_depth
+        return unmorton(self.codes, len(self.coords), self.max_depth) + base
 
     def cells(self) -> dict[tuple[int, ...], bytes]:
         """Every cell in the node, keyed by absolute cell coordinates."""
@@ -140,22 +203,20 @@ class Node:
 def encode_node(
     depth: int,
     coords: tuple[int, ...],
-    local: np.ndarray,
+    codes: np.ndarray,
     payloads: list[bytes],
     *,
     max_depth: int,
 ) -> bytes:
     """Serialise one node.
 
-    Layout (little endian): header, node coords ``int64[ndim]``, local cell
-    coords ``uint32[n, ndim]``, offsets ``uint64[n + 1]`` relative to the
-    start of the payload, then the concatenated cell bytes.  Cells are stored
-    in C order of their local coordinates, so a node's bytes depend only on
-    its contents.
+    Layout (little endian): header, node coords ``int64[ndim]``, cell codes
+    ``uint64[n]`` (sorted), offsets ``uint64[n + 1]`` relative to the start of
+    the payload, then the concatenated cell bytes in code order.  A node's
+    bytes depend only on its contents.
     """
-    local = np.asarray(local, dtype=np.uint32).reshape(len(payloads), len(coords))
-    order = np.lexsort(local.T[::-1]) if len(local) else np.zeros(0, dtype=np.intp)
-    local = local[order]
+    codes = np.asarray(codes, dtype=np.uint64).reshape(len(payloads))
+    order = np.argsort(codes, kind="stable")
     payloads = [payloads[i] for i in order]
     offsets = np.zeros(len(payloads) + 1, dtype="<u8")
     offsets[1:] = np.cumsum([len(p) for p in payloads])
@@ -163,7 +224,7 @@ def encode_node(
         [
             _NODE_HEADER.pack(NODE_MAGIC, FORMAT_VERSION, len(coords), depth, max_depth, len(payloads)),
             np.asarray(coords, dtype="<i8").tobytes(),
-            local.astype("<u4").tobytes(),
+            codes[order].astype("<u8").tobytes(),
             offsets.tobytes(),
             *payloads,
         ]
@@ -174,41 +235,48 @@ def decode_node(buf: bytes) -> Node:
     view = memoryview(buf)
     magic, version, ndim, depth, max_depth, n = _NODE_HEADER.unpack_from(view, 0)
     if magic != NODE_MAGIC or version != FORMAT_VERSION:
-        raise ValueError("not a zarr-octree node object")
+        raise ValueError("not a zarr-octree node object of this format version")
     pos = _NODE_HEADER.size
     coords = tuple(int(c) for c in np.frombuffer(view, "<i8", ndim, pos))
     pos += 8 * ndim
-    local = np.frombuffer(view, "<u4", n * ndim, pos).reshape(n, ndim)
-    pos += 4 * n * ndim
+    codes = np.frombuffer(view, "<u8", n, pos)
+    pos += 8 * n
     offsets = np.frombuffer(view, "<u8", n + 1, pos).astype(np.int64) + pos + 8 * (n + 1)
-    return Node(depth, max_depth, coords, local, offsets, view)
+    return Node(depth, max_depth, coords, codes, offsets, view)
+
+
+# -- manifest -------------------------------------------------------------------
 
 
 @dataclass
 class NodeInfo:
     nbytes: int
     ncells: int
+    first: int = 0  # code of the first and last occupied cell
+    last: int = 0
+    weight: float = 0.0
 
 
 def encode_manifest(ndim: int, max_depth: int, nodes: dict[NodeKey, NodeInfo]) -> bytes:
-    """Serialise the occupancy manifest: one row per stored node.
+    """Serialise the manifest: one row per stored node.
 
-    Layout: header, depth ``uint8[n]``, node coords ``int64[n, ndim]``, node
-    size ``uint64[n]``, cell count ``uint32[n]``.  It is what lets a reader
-    resolve any cell to its node, or to "empty", without touching storage.
+    Layout: header, depth ``uint8[n]``, node coords ``int64[n, ndim]``, first
+    and last occupied code ``uint64[n]`` each, node size ``uint64[n]``, cell
+    count ``uint32[n]``, weight ``float64[n]``.  It lets a reader resolve any
+    cell to its node, or to "empty", without touching storage.
     """
     keys = sorted(nodes)
-    depth = np.array([k[0] for k in keys], dtype="u1")
-    coords = np.array([k[1] for k in keys], dtype="<i8").reshape(len(keys), ndim)
-    size = np.array([nodes[k].nbytes for k in keys], dtype="<u8")
-    count = np.array([nodes[k].ncells for k in keys], dtype="<u4")
+    col = lambda f, dt: np.array([f(nodes[k]) for k in keys], dtype=dt)
     return b"".join(
         [
             _MANIFEST_HEADER.pack(MANIFEST_MAGIC, FORMAT_VERSION, ndim, max_depth, len(keys)),
-            depth.tobytes(),
-            coords.tobytes(),
-            size.tobytes(),
-            count.tobytes(),
+            np.array([k[0] for k in keys], dtype="u1").tobytes(),
+            np.array([k[1] for k in keys], dtype="<i8").reshape(len(keys), ndim).tobytes(),
+            col(lambda i: i.first, "<u8").tobytes(),
+            col(lambda i: i.last, "<u8").tobytes(),
+            col(lambda i: i.nbytes, "<u8").tobytes(),
+            col(lambda i: i.ncells, "<u4").tobytes(),
+            col(lambda i: i.weight, "<f8").tobytes(),
         ]
     )
 
@@ -217,17 +285,22 @@ def decode_manifest(buf: bytes) -> tuple[int, int, dict[NodeKey, NodeInfo]]:
     view = memoryview(buf)
     magic, version, ndim, max_depth, n = _MANIFEST_HEADER.unpack_from(view, 0)
     if magic != MANIFEST_MAGIC or version != FORMAT_VERSION:
-        raise ValueError("not a zarr-octree manifest")
+        raise ValueError("not a zarr-octree manifest of this format version")
     pos = _MANIFEST_HEADER.size
-    depth = np.frombuffer(view, "u1", n, pos)
-    pos += n
-    coords = np.frombuffer(view, "<i8", n * ndim, pos).reshape(n, ndim)
-    pos += 8 * n * ndim
-    size = np.frombuffer(view, "<u8", n, pos)
-    pos += 8 * n
-    count = np.frombuffer(view, "<u4", n, pos)
+
+    def take(dt: str, count: int) -> np.ndarray:
+        nonlocal pos
+        a = np.frombuffer(view, dt, count, pos)
+        pos += a.nbytes
+        return a
+
+    depth = take("u1", n)
+    coords = take("<i8", n * ndim).reshape(n, ndim)
+    first, last, size, count, weight = take("<u8", n), take("<u8", n), take("<u8", n), take("<u4", n), take("<f8", n)
     nodes = {
-        (int(depth[i]), tuple(int(c) for c in coords[i])): NodeInfo(int(size[i]), int(count[i]))
+        (int(depth[i]), tuple(int(c) for c in coords[i])): NodeInfo(
+            int(size[i]), int(count[i]), int(first[i]), int(last[i]), float(weight[i])
+        )
         for i in range(n)
     }
     return ndim, max_depth, nodes

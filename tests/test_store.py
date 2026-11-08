@@ -12,6 +12,7 @@ from zarr.storage import MemoryStore
 
 from zarr_octree import EXTENSION, OctreeConfig, OctreeStore, convert
 from zarr_octree.instrument import CountingStore
+from zarr_octree.tree import decode_node
 
 GRID = (32, 32, 32)
 
@@ -55,7 +56,7 @@ def set_cell(arr, cell, data):
     arr[tuple(slice(c, c + 1) for c in cell)] = v
 
 
-def octree_array(inner, cells, config=OctreeConfig(max_depth=4, target_bytes=8_000), name="pts"):
+def octree_array(inner, cells, config=OctreeConfig(max_depth=4, max_weight=8_000), name="pts"):
     store = OctreeStore(inner, arrays={name: config})
     arr = zarr.create_array(store, name=name, shape=GRID, chunks=(1, 1, 1), dtype="bytes")
     write_cells(arr, cells)
@@ -82,14 +83,14 @@ def test_physical_layout_is_nodes_and_a_manifest():
     assert "pts/o/manifest" in keys
     nodes = store.nodes("pts")
     assert {f"pts/o/{d}/" + "/".join(map(str, c)) for d, c in nodes} == {k for k in keys if k.startswith("pts/o/") and k != "pts/o/manifest"}
-    assert len({d for d, _ in nodes}) > 1  # more than one depth was used
+    assert len({d for d, _ in nodes}) > 1  # nodes start at more than one octree depth
     assert len(nodes) < len(point_cells()) / 5
 
 
 def test_nodes_hold_similar_amounts():
     cells = point_cells()
     store = octree_array(MemoryStore(), cells)
-    sizes = np.array([info.nbytes for (d, _), info in store.nodes("pts").items() if d < 4])
+    sizes = np.array([info.nbytes for info in store.nodes("pts").values() if info.ncells > 1])
     assert sizes.max() <= 8_000 + 64  # header slack
     cell_sizes = np.array([len(b) for b in cells.values()])
     assert sizes.std() / sizes.mean() < cell_sizes.std() / cell_sizes.mean()
@@ -148,14 +149,24 @@ def test_edits_overwrite_delete_and_add():
     store.flush()
     arr = zarr.open_array(OctreeStore(inner), path="pts", mode="r")
     np.testing.assert_array_equal(arr[...], as_object_array(expect))
-    check_partition(OctreeStore(inner).nodes("pts"), max_depth=4)
+    assert check_partition(inner) == set(expect)
 
 
-def check_partition(nodes, max_depth):
-    keys = set(nodes)
-    for depth, coords in keys:
-        for up in range(depth):
-            assert (up, tuple(c >> (depth - up) for c in coords)) not in keys
+def check_partition(inner, path="pts"):
+    """Every stored cell in exactly one node, whose manifest entry matches it; nodes within bounds."""
+    store = OctreeStore(inner)
+    nodes = store.nodes(path)
+    config = store._arrays[path].config
+    seen = set()
+    for key, info in nodes.items():
+        d, c = key
+        node = decode_node(sync(inner.get(f"{path}/o/{d}/" + "/".join(map(str, c)), default_buffer_prototype())).to_bytes())
+        cells = {tuple(int(x) for x in row) for row in node.absolute()}
+        assert not cells & seen
+        seen |= cells
+        assert (info.ncells, info.first, info.last) == (len(node), int(node.codes[0]), int(node.codes[-1]))
+        assert info.ncells == 1 or info.weight <= config.max_weight
+    return seen
 
 
 def test_repack_matches_a_fresh_write():
@@ -267,7 +278,7 @@ def test_auto_flush_when_the_buffer_is_full():
     assert "pts/o/manifest" in inner._store_dict
     store.flush()
     np.testing.assert_array_equal(zarr.open_array(OctreeStore(inner), path="pts")[...], as_object_array(cells))
-    check_partition(OctreeStore(inner).nodes("pts"), 4)
+    assert check_partition(inner) == set(cells)
 
 
 def test_overwriting_the_array_drops_its_nodes():
@@ -287,3 +298,60 @@ def test_read_only_view_sees_buffered_writes():
     np.testing.assert_array_equal(arr[...], as_object_array(cells))
     with pytest.raises(ValueError):
         sync(store.with_read_only(True).set("pts/c/0/0/0", default_buffer_prototype().buffer.from_bytes(b"x")))
+
+
+def vertices(chunk: bytes) -> float:
+    """Points in an encoded vlen chunk, decoded the way zarr wrote it."""
+    import numcodecs
+
+    raw = numcodecs.Zstd().decode(chunk)
+    return (len(raw) - 8) / 12
+
+
+def test_vertex_bounds_with_a_custom_weight():
+    cells = point_cells()
+    inner = MemoryStore()
+    config = OctreeConfig(max_depth=5, min_weight=300, max_weight=1_200, unit="vertices", weigh=vertices)
+    octree_array(inner, cells, config=config)
+    pts = {c: len(b) / 12 for c, b in cells.items()}
+    nodes = OctreeStore(inner).nodes("pts")
+    weights = np.array([i.weight for i in nodes.values()])
+    assert weights.sum() == sum(pts.values())  # the weigher counted vertices
+    multi = np.array([i.ncells > 1 for i in nodes.values()])
+    assert (weights[multi] <= 1_200).all()
+    assert (weights >= 300).mean() > 0.9
+    assert check_partition(inner) == set(cells)
+    # Reopened without a weigher: reads work, writes in a custom unit refuse.
+    store = OctreeStore(inner)
+    arr = zarr.open_array(store, path="pts", mode="r+")
+    np.testing.assert_array_equal(arr[...], as_object_array(cells))
+    set_cell(arr, next(iter(cells)), b"\x00" * 24)
+    with pytest.raises(ValueError, match="weigh"):
+        store.flush()
+
+
+def test_min_weight_reduces_light_nodes():
+    cells = point_cells()
+    light = {}
+    for lo in (0, 4_000):
+        inner = MemoryStore()
+        octree_array(inner, cells, config=OctreeConfig(4, 8_000, lo))
+        light[lo] = sum(i.nbytes < 4_000 for i in OctreeStore(inner).nodes("pts").values())
+        assert check_partition(inner) == set(cells)
+    assert light[4_000] < light[0]
+
+
+def test_get_cells_matches_zarr_and_reads_each_node_once():
+    cells = point_cells()
+    inner = MemoryStore()
+    octree_array(inner, cells)
+    counter = CountingStore(inner, record_keys=True)
+    store = OctreeStore(counter)
+    want = list(cells)[:3000] + [(0, 0, 0), (31, 31, 31)]
+    got = store.get_cells("pts", want)  # encoded chunks: zstd over a one-item vlen-bytes block
+    import numcodecs
+
+    decoded = [None if g is None else numcodecs.Zstd().decode(g)[8:] for g in got]
+    assert decoded == [cells.get(c) for c in want]
+    node_reads = [k for k in counter.counts.keys if "/o/" in k and not k.endswith("manifest")]
+    assert len(node_reads) == len(set(node_reads))

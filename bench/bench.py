@@ -32,7 +32,7 @@ from zarr.storage import LocalStore
 
 from zarr_octree import OctreeConfig, OctreeStore
 from zarr_octree.instrument import CountingStore
-from zarr_octree.tree import build_partition, decode_node
+from zarr_octree.tree import decode_node
 
 warnings.filterwarnings("ignore", message=".*does not have a Zarr V3 specification.*")
 
@@ -208,7 +208,7 @@ def main() -> None:
     pts = np.clip(pts, 0, BOX - 1e-3)
     leaf = bin_points(pts, GRID, LEAF)
     coarse = bin_points(pts, GRID // COARSE, LEAF * COARSE)
-    config = OctreeConfig(max_depth=DEPTH, target_bytes=TARGET)
+    config = OctreeConfig(max_depth=DEPTH, max_weight=TARGET)
     results: dict = {
         "setup": {
             "points": int(len(pts)), "grid": GRID, "leaf": LEAF, "coarse": COARSE, "max_depth": DEPTH,
@@ -238,25 +238,7 @@ def main() -> None:
     manifest = args.stores / "octree" / "pts" / "o" / "manifest"
     results["manifest_bytes"] = manifest.stat().st_size
 
-    # 2. Partition sweep: target size and depth (pure partition, no I/O).
-    # Sizes as the store saw them: encoded (zstd-compressed) chunk bytes plus the node index.
-    coords, _ = leaf
-    sizes = np.array([(args.stores / "leaf" / "pts" / "c").joinpath(*map(str, c)).stat().st_size for c in coords]) + 4 * 3 + 8
-    raw_points = np.array([len(b) for b in leaf[1]]) / POINT_BYTES
-    sweep = []
-    for depth in (3, 4, 5):
-        for target in (16 << 10, 32 << 10, 64 << 10, 128 << 10, 256 << 10, 512 << 10, 1 << 20, 2 << 20):
-            parts = build_partition(coords, sizes, depth, target)
-            if (depth, target) == (DEPTH, TARGET):
-                assert {(d, c) for d, c, _ in parts} == set(nodes), "partition differs from the stored one"
-            per = np.array([sizes[m].sum() for _, _, m in parts])
-            pts_per = np.array([raw_points[m].sum() for _, _, m in parts])
-            sweep.append({
-                "max_depth": depth, "target_bytes": target, "objects": len(parts),
-                "cv": float(pts_per.std() / pts_per.mean()), "points_max": float(pts_per.max()),
-                "over_target": int((per > target).sum()), "gpu_batch_efficiency": batch_efficiency(pts_per),
-            })
-    results["sweep"] = sweep
+    # 2. (Format 1 swept octree depth and target size here; bench_bounds.py sweeps format 2's bounds.)
 
     # 3. Box queries.
     occ = {}
