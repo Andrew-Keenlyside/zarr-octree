@@ -1,0 +1,31 @@
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+indexed-16 {'write_seconds': 42.212989774066955, 'disk_bytes': 55058643, 'vertex_bytes': 44511379, 'vertex_objects': 56, 'files': 121}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+octree-16 {'write_seconds': 42.95292293897364, 'disk_bytes': 49570046, 'vertex_bytes': 41767575, 'vertex_objects': 56, 'files': 121}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+indexed-32 {'write_seconds': 48.63667226792313, 'disk_bytes': 56106835, 'vertex_bytes': 45035475, 'vertex_objects': 8, 'files': 25}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+octree-32 {'write_seconds': 48.388614542083815, 'disk_bytes': 49565690, 'vertex_bytes': 41765511, 'vertex_objects': 8, 'files': 25}
+lat   0  indexed-16       median    371.6 ms  requests      0
+lat   0  octree-16        median    393.1 ms  requests      0
+lat   0  octree-zarr-16   median    390.0 ms  requests      0
+lat   0  indexed-32       median    375.7 ms  requests      0
+lat   0  octree-32        median    405.1 ms  requests      0
+lat   0  octree-zarr-32   median    393.3 ms  requests      0
+lat  20  indexed-16       median    592.5 ms  requests    506
+lat  20  octree-16        median    601.8 ms  requests    506
+lat  20  octree-zarr-16   median    594.5 ms  requests    506
+lat  20  indexed-32       median    614.5 ms  requests    506
+lat  20  octree-32        median    615.3 ms  requests    618
+lat  20  octree-zarr-32   median    610.8 ms  requests    618
+lat  80  indexed-16       median   1266.7 ms  requests    506
+lat  80  octree-16        median   1290.7 ms  requests    506
+lat  80  octree-zarr-16   median   1287.7 ms  requests    506
+lat  80  indexed-32       median   1276.1 ms  requests    506
+lat  80  octree-32        median   1434.3 ms  requests    618
+lat  80  octree-zarr-32   median   1429.2 ms  requests    618
+-> /home/andrew/scripts/zarr-octree/bench/results/bench_zv.json

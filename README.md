@@ -76,6 +76,71 @@ one node, runs contiguous and cut on octree boundaries).
 ~/.conda/envs/zarr-vectors/bin/python -m pytest -q      # zarr 3.2.1
 ```
 
+## Prototype B: `zarr_octree_sharding`, a sharding codec (tested in zarr-vectors)
+
+`src/zarr_octree/codec.py` is the smallest-footprint form of the same idea: a
+codec in place of `sharding_indexed`, so zarr-python needs **no change** — it
+finds the codec through the `zarr.codecs` entry point, and a reader without
+it refuses the array (unknown codec).  The array, its shards, inner chunks and
+keys are what `sharding_indexed` gives; only the bytes inside a shard differ:
+
+* a **sparse index** (one row per stored inner chunk, ~28 B) instead of the
+  dense one (16 B per *possible* inner chunk);
+* inner chunks in Z-order, grouped into **runs** bounded by `min_weight` /
+  `max_weight` (`build_runs`, as in format 2), listed in the index;
+* partial reads fetch **one byte range per run touched**, concurrently;
+  `read_runs` hands whole runs to a consumer that wants bounded units.
+
+It subclasses zarr's `ShardingCodec`, so `Array.shards`/`chunks` and code on
+zarr's sharding API (zarr-vectors' range reads, shard transactions) work
+unchanged; it opts out of zarr 3.4's synchronous sharding path, which assumes
+the dense index.  7 tests (`tests/test_codec.py`), zarr 3.4.0 and 3.2.1.
+
+**In zarr-vectors** (local branch `octree-sharding-proto`, worktree
+`~/scripts/zarr-vectors-py-octree`, 91 lines in three internal files, no API
+change): `Group.create_sharded_chunk_array` builds this codec when
+`ZARR_VECTORS_SHARD_CODEC=zarr_octree_sharding` (a prototype switch); the
+pooled local cell reader reads the sparse index; "is it sharded?" accepts any
+`ShardingCodec`.  zarr-vectors' suite with the codec forced on for every
+sharded array: 2,092 passed, 18 failed — against 2,109 / 1 for the baseline.
+After the sharded-detection fix the codec accounts for 5: four tests assert
+the codec name `sharding_indexed`, one corrupts a dense index and expects
+zarr's crc32c message.  (One failure is in the baseline too; one is the
+worktree lacking the generated `_version.py`.)
+
+`bench/bench_zv.py` (figures: `bench/figures_zv.py`) writes the 3.99 M
+densMAP points through zarr-vectors (64³ cells, zstd; objects of ~1,000
+vertices), sharded 16³ or 32³ cells per shard by either codec (runs
+160–640 kB), and reads boxes and objects through zarr-vectors' API — locally,
+and behind the latency store (20 / 80 ms + 100 MB/s per request).  Every
+store returns the same points for every query.
+
+![zarr-vectors](bench/results/figures/zv_ratio.png)
+
+| | `sharding_indexed` 16³ | octree 16³ | `sharding_indexed` 32³ | octree 32³ |
+|---|---:|---:|---:|---:|
+| store size (MB) | 55.1 | **49.6** | 56.1 | **49.6** |
+| write (s) | 42.2 | 43.0 | 48.6 | 48.4 |
+| query geomean, local (ms) | 440 | **430** | **412** | 471 |
+| query geomean, 20 ms (ms) | **682** | 720 | **705** | 758 |
+| query geomean, 80 ms (ms) | **1,458** | 1,509 | **1,476** | 1,603 |
+
+* **Disk −10 %** (−39 % on a 400k-point subset, where shards are sparser):
+  the dense index of a 16³ shard is 64 KiB however little it holds.
+* **Queries: no gain, 2–8 % slower with 16³ shards, up to 9 % with 32³.**
+  zarr-vectors reads cell by cell — the pooled local reader one byte range
+  per cell, the object-store path one range request per cell — so the runs
+  never become the unit of a read, and requests per box are identical.  The
+  octree codec loses where (a) a dense shard's sparse index outgrows the
+  64 KiB first read (4 of 112 shards at 16³, 10 of 16 at 32³: a second
+  request), and (b) objects scattered within a run make its span over-read
+  (10-object queries: 265 vs 211 MB at 16³).
+* What it would take to gain: a zarr-vectors reader that fetches runs
+  (`read_runs`) — the bounded units the BRIDGE argument is about — and an
+  index read sized to the shard (or the index at the start of the shard).
+  As a drop-in for `sharding_indexed` under today's readers it buys disk,
+  not speed.
+
 ## Chunk layouts compared: bounded octree runs against uniform grids
 
 `bench/bench_bounds.py` (figures: `bench/figures_bounds.py`) stores the same
@@ -330,4 +395,7 @@ bench/bench_bounds.py          uniform grids against min/max-bounded runs (forma
 bench/figures.py               figures -> bench/results/figures/
 bench/figures_index.py         figures for bench_index.py
 bench/figures_bounds.py        figures for bench_bounds.py
+bench/bench_zv.py              prototype B in zarr-vectors (zarr-vectors env)
+bench/figures_zv.py            figures for bench_zv.py
+src/zarr_octree/codec.py       prototype B: the zarr_octree_sharding codec
 ```

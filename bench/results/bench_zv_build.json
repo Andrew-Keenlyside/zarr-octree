@@ -1,0 +1,30 @@
+{
+ "indexed-16": {
+  "write_seconds": 42.212989774066955,
+  "disk_bytes": 55058643,
+  "vertex_bytes": 44511379,
+  "vertex_objects": 56,
+  "files": 121
+ },
+ "octree-16": {
+  "write_seconds": 42.95292293897364,
+  "disk_bytes": 49570046,
+  "vertex_bytes": 41767575,
+  "vertex_objects": 56,
+  "files": 121
+ },
+ "indexed-32": {
+  "write_seconds": 48.63667226792313,
+  "disk_bytes": 56106835,
+  "vertex_bytes": 45035475,
+  "vertex_objects": 8,
+  "files": 25
+ },
+ "octree-32": {
+  "write_seconds": 48.388614542083815,
+  "disk_bytes": 49565690,
+  "vertex_bytes": 41765511,
+  "vertex_objects": 8,
+  "files": 25
+ }
+}

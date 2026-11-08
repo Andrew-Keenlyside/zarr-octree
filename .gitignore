@@ -1,7 +1,8 @@
 __pycache__/
 *.egg-info/
-bench/_stores/
+bench/_stores
 bench/_data/
-bench/_stores_smoke/
+bench/_stores_smoke
 bench/results/*.npy
-bench/_stores_bounds/
+bench/_stores_bounds
+bench/_stores_zv/
