@@ -52,9 +52,9 @@ The array's `zarr.json` carries the extension in two places:
 * `storage_transformers` is where Zarr v3 places storage-layer extensions;
   it holds the configuration.
 * The top-level `zarr_octree` field with `"must_understand": true` makes a
-  reader that does not implement the extension refuse the array.  It is
-  needed because zarr-python accepts and ignores storage transformers: without
-  it such a reader would open the array and find no chunk at any chunk key,
+  reader that does not implement the extension refuse the array.  zarr-python
+  (3.2–3.4) already rejects arrays with storage transformers, but a reader
+  that ignored them would open the array and find no chunk at any chunk key,
   i.e. silently read an empty array.
 
 `max_depth` is fixed for the life of the array.  `min_weight`, `max_weight`

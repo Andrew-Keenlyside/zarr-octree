@@ -168,6 +168,34 @@ def fig_ratio(res: dict, out: Path, shard: int) -> None:
     plt.close(fig)
 
 
+def fig_speed(res: dict, out: Path, shard: int = 16) -> None:
+    """The README's speed figure: two shard formats, each read as today and with the pooled, coalesced reader."""
+    med = medians(res["queries"])
+    lats = sorted({k[0] for k in med})
+    rows = [  # (reader, label, colour): colour is the format, the lighter shade the reader zarr-vectors uses today
+        ("indexed", "sharding_indexed, read as today", "#f5b49a"),
+        ("indexed-gap", "sharding_indexed, new reader", "#eb6834"),
+        ("octree-zarr", "octree codec, read as today", "#a9c9ef"),
+        ("octree-runs", "octree codec, new reader", "#2a78d6"),
+    ]
+    fig, axes = plt.subplots(1, len(lats), figsize=(3.2 * len(lats) + 2.4, 2.5), sharey=True)
+    y = np.arange(len(rows))[::-1]
+    for ax, lat in zip(axes, lats):
+        vals = [geomean(med, lat, f"{r}-{shard}") * 1e3 for r, _, _ in rows]
+        for yi, v, (_, _, colour) in zip(y, vals, rows):
+            ax.barh(yi, v, color=colour, height=0.62)
+            ax.text(v * 1.03, yi, f"{v:,.0f}", va="center", fontsize=8, color=INK2)
+        ax.set_xlim(0, max(vals) * 1.22)
+        ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4))
+        ax.grid(axis="y", visible=False)
+        ax.set_title("local store" if not lat else f"{lat * 1e3:.0f} ms per request", fontsize=9.5)
+        ax.set_xlabel("query time (ms)")
+    axes[0].set_yticks(y, [label for _, label, _ in rows], fontsize=8.5)
+    fig.tight_layout(w_pad=1.2)
+    fig.savefig(out, dpi=160)
+    plt.close(fig)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", type=Path, default=HERE / "results" / "bench_zv.json")
@@ -176,6 +204,7 @@ def main() -> None:
     res = json.loads(args.results.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
     fig_storage(res, args.out / "zv_storage.png")
+    fig_speed(res, args.out / "zv_speed.png")
     fig_summary(res, args.out / "zv_summary.png")
     for shard in (16, 32):
         fig_ratio(res, args.out / f"zv_ratio_{shard}.png", shard)
