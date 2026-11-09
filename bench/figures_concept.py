@@ -74,10 +74,16 @@ def cube_edges(cubes: list[tuple[tuple[int, int, int], int]]) -> list:
     return [list(e) for e in seen]
 
 
-def per_decade(weights: np.ndarray, grid: np.ndarray, bw: float = 0.18) -> np.ndarray:
-    """Object sizes as a smooth curve: a Gaussian kernel density over log10(points), as a share of the objects per decade."""
+def per_decade(weights: np.ndarray, grid: np.ndarray, upper: float | None = None, bw: float = 0.18) -> np.ndarray:
+    """Object sizes as a smooth curve: a Gaussian kernel density over log10(points), as a share of the objects per decade.
+
+    The kernels are reflected at 1 point and, when given, at ``upper`` (a hard bound), so no density spills past
+    either; the curve is zero beyond ``upper``.
+    """
     x = np.log10(weights)[:, None]
-    return np.exp(-0.5 * ((grid[None] - x) / bw) ** 2).sum(0) / (bw * np.sqrt(2 * np.pi) * len(weights))
+    mirrors = [x, -x] + ([2 * np.log10(upper) - x] if upper else [])
+    y = sum(np.exp(-0.5 * ((grid[None] - m) / bw) ** 2).sum(0) for m in mirrors) / (bw * np.sqrt(2 * np.pi) * len(weights))
+    return np.where(grid <= np.log10(upper), y, 0.0) if upper else y
 
 
 def style(ax) -> None:
@@ -108,7 +114,7 @@ def fig_concept(out: Path) -> None:
     fig = plt.figure(figsize=(11, 7.6))
     gs = fig.add_gridspec(2, 2, height_ratios=[4, 1.1], hspace=0.12, wspace=0.08)
     grid = np.linspace(0, np.log10(max(cc.max(), MAX_W)) + 0.4, 400)
-    curves = {key: per_decade(w, grid) for key, _, _, w, _, _ in panels}
+    curves = {key: per_decade(w, grid, MAX_W if key == "octree" else None) for key, _, _, w, _, _ in panels}
     top = max(y.max() for y in curves.values()) * 1.2
     for col, (key, title, segs, weights, lw, alpha) in enumerate(panels):
         ax = fig.add_subplot(gs[0, col], projection="3d")
