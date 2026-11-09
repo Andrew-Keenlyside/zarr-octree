@@ -16,37 +16,39 @@ zarr-vectors (option 1 of AllenInstitute/zarr-vectors-py#45).
 With constant chunks, every chunk is an object however many points it holds.
 An octree splits a node into eight only while it holds too many points, so a
 node covers a large volume where the data are sparse and a small one where
-they are dense, and empty space costs nothing.  An octree bounds size from
-above only — a sparse node beside a dense one stays small — so zarr-octree
-also merges neighbouring small nodes along the Z-order into **runs** between a
-minimum and a maximum size.  (Synthetic points: three clusters with broad
-tails, 2.27 M points; `bench/figures_concept.py`.)
+they are dense, and empty space costs nothing.  zarr-octree goes one step
+further and cuts the octree's Z-order into **runs** between a minimum and a
+maximum size, which also merges the small nodes an octree leaves beside dense
+ones.  Every layout in the figure is tuned to the same mean object size
+(10,000 points), so they differ only in how evenly they spread the points:
+constant chunks over five orders of magnitude (CV 3.7), an octree with a
+limit or a target size less (CV 1.1), runs least (CV 0.26).  (Synthetic
+points: three clusters with broad tails, 2.27 M points;
+`bench/figures_concept.py`.)
 
 ## Results
 
-* **Even objects.**  On a 3.99 M-point synthetic cloud, runs bounded at
-  4k–16k vertices all hold 4,055–15,999 vertices (coefficient of variation
-  0.28); uniform grids spread over 4–6 orders of magnitude (CV 4.7–15).
-* **Smaller stores.**  The codec's sparse index (6 bytes per stored chunk,
-  against 16 bytes per *possible* chunk) makes the zarr-vectors store 12 %
-  smaller (48.2 against 55.1 MB); more on sparse data.
-* **Speed comes from the reader, not the format.**  zarr-vectors today reads
-  every sharded cell through zarr, which re-reads the shard's index each
-  time.  A reader that reads each index once and merges neighbouring byte
-  ranges halves query time at 20 ms latency — on either format.  With that
-  reader, octree runs and plain `sharding_indexed` are equal.
+![The octree codec against constant chunks, read through zarr](bench/results/figures/zv_zarr_api.png)
 
-![Query time by shard format and reader](bench/results/figures/zv_speed.png)
+3.99 M synthetic points written through zarr-vectors and read through zarr's
+API: geometric mean over 10 query types (boxes and objects), 16³-cell shards,
+100 MB/s per request.
 
-Geometric mean over 10 query types (boxes and objects) on the 3.99 M points
-written through zarr-vectors, 16³-cell shards, 100 MB/s per request.  "New
-reader": each shard index read once, neighbouring byte ranges merged.
+* **Through zarr, the codec is within 2–9 % of constant chunks on speed**
+  (708 against 687 ms at 20 ms latency), **reads 26 % fewer bytes** per query
+  and makes a **12 % smaller store** — its sparse index is 6 bytes per stored
+  chunk against 16 bytes per possible chunk.
+* **Objects are even** (figure above): at the same mean size, runs spread 14×
+  less than constant chunks.
+* **A custom reader (▼) is where speed comes from**: reading each shard index
+  once and merging neighbouring byte ranges halves query time at 20 ms
+  latency, on either format.  It is a reader change, not a format change
+  (prototyped in zarr-vectors).
 
-So the octree is worth having for **store size** and for consumers that work
+So the codec is worth having for **store size** and for consumers that work
 in **bounded units** (GPU batches, BRIDGE graphs: `read_runs`), not as a
-speed-up on its own.  Through zarr's own per-chunk reads no layout beats
-coarse constant chunks, as zarr's per-chunk work dominates.  Every benchmark,
-figure and number is in [`bench/RESULTS.md`](bench/RESULTS.md).
+speed-up on its own.  Every benchmark, figure and number is in
+[`bench/RESULTS.md`](bench/RESULTS.md).
 
 ## Using it
 
