@@ -1,0 +1,46 @@
+{
+ "indexed-16": {
+  "runs": 0,
+  "run_bytes_mean": null,
+  "run_bytes_median": null,
+  "run_bytes_cv": null,
+  "write_seconds": 47.53487435600255,
+  "disk_bytes": 55058643,
+  "vertex_bytes": 44511379,
+  "vertex_objects": 56,
+  "files": 121
+ },
+ "octree10k-16": {
+  "runs": 2168,
+  "run_bytes_mean": 18838.163745387454,
+  "run_bytes_median": 5917.5,
+  "run_bytes_cv": 2.946007667941862,
+  "write_seconds": 47.13070469396189,
+  "disk_bytes": 48213791,
+  "vertex_bytes": 41099931,
+  "vertex_objects": 56,
+  "files": 121
+ },
+ "octree320k-16": {
+  "runs": 91,
+  "run_bytes_mean": 448803.7252747253,
+  "run_bytes_median": 189380.0,
+  "run_bytes_cv": 2.803341745285657,
+  "write_seconds": 47.65890963701531,
+  "disk_bytes": 48185186,
+  "vertex_bytes": 41075007,
+  "vertex_objects": 56,
+  "files": 121
+ },
+ "runs-16": {
+  "runs": 115,
+  "run_bytes_mean": 355140.3391304348,
+  "run_bytes_median": 378089.0,
+  "run_bytes_cv": 0.6145217152836088,
+  "write_seconds": 45.85587009403389,
+  "disk_bytes": 48185536,
+  "vertex_bytes": 41075295,
+  "vertex_objects": 56,
+  "files": 121
+ }
+}

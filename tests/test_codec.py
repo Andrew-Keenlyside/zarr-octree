@@ -18,8 +18,9 @@ from zarr_octree.instrument import CountingStore
 from test_store import GRID, as_object_array, point_cells, write_cells
 
 
-def sharded(store, shard=(16, 16, 16), lo=0, hi=8_000, name="pts", grid=GRID):
-    codec = OctreeShardingCodec(chunk_shape=(1, 1, 1), codecs=[VLenBytesCodec(), ZstdCodec()], min_weight=lo, max_weight=hi)
+def sharded(store, shard=(16, 16, 16), lo=0, hi=8_000, name="pts", grid=GRID, layout="runs", target=4_000):
+    bounds = {"min_weight": lo, "max_weight": hi} if layout == "runs" else {"target": target}
+    codec = OctreeShardingCodec(chunk_shape=(1, 1, 1), codecs=[VLenBytesCodec(), ZstdCodec()], layout=layout, **bounds)
     return zarr.create_array(store, name=name, shape=grid, chunks=shard, serializer=codec, compressors=None, dtype="bytes")
 
 
@@ -29,10 +30,11 @@ def shard_objects(store, name="pts"):
     return sync(run())
 
 
-def test_vlen_cells_round_trip_and_zarr_sees_a_sharded_array():
+@pytest.mark.parametrize("layout", ["octree", "runs"])
+def test_vlen_cells_round_trip_and_zarr_sees_a_sharded_array(layout):
     cells = point_cells()
     store = MemoryStore()
-    arr = sharded(store)
+    arr = sharded(store, layout=layout)
     write_cells(arr, cells)
     arr = zarr.open_array(store, path="pts", mode="r")
     assert arr.shards == (16, 16, 16) and arr.chunks == (1, 1, 1)
@@ -137,20 +139,35 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
 
 def test_codec_round_trips_through_its_dict():
     c = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], min_weight=5, max_weight=50)
-    assert OctreeShardingCodec.from_dict(c.to_dict()) == c
+    assert c.layout == "runs" and OctreeShardingCodec.from_dict(c.to_dict()) == c
+    d = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], target=500)
+    assert d.layout == "octree" and OctreeShardingCodec.from_dict(d.to_dict()) == d
+    assert "min_weight" not in d.to_dict()["configuration"]
 
 
-def test_dense_rows_for_external_readers():
+def test_default_is_an_octree_aimed_at_100k_and_old_metadata_reads_as_runs():
+    c = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()])
+    assert (c.layout, c.target) == ("octree", 100_000)
+    old = {"name": "zarr_octree_sharding", "configuration": {"version": 2, "chunk_shape": (2, 2), "codecs": [BytesCodec().to_dict()],
+                                                             "min_weight": 5, "max_weight": 50, "unit": "bytes"}}
+    assert OctreeShardingCodec.from_dict(old).layout == "runs"
+    with pytest.raises(ValueError):
+        OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], layout="grid")
+
+
+def test_octree_layout_runs_are_aligned_octree_blocks():
     cells = point_cells()
     store = MemoryStore()
-    write_cells(sharded(store, lo=2_000, hi=8_000), cells)
-    blob = shard_objects(store)["pts/c/0/0/0"]
-    index = index_from_shard(blob, (16, 16, 16))
-    tail = blob[-index_read_nbytes((16, 16, 16)):]
-    rows = dense_rows(tail, (16, 16, 16), runs=True)
-    stored = rows[:, 0] != np.iinfo(np.uint64).max
-    assert stored.sum() == len(index.codes) and np.array_equal(rows[:, :2], dense_rows(tail, (16, 16, 16)))
-    pos = {tuple(int(x) for x in c): i for i, c in enumerate(index.coords)}
-    for (off, n, run), flat in zip(rows[stored], np.flatnonzero(stored)):
-        i = pos[tuple(int(x) for x in np.unravel_index(flat, (16, 16, 16)))]
-        assert (int(index.offsets[i]), int(index.lengths[i]), int(index.run_of()[i])) == (off, n, run)
+    write_cells(sharded(store, layout="octree", target=4_000), cells)
+    weights = []
+    for blob in shard_objects(store).values():
+        index = index_from_shard(blob, (16, 16, 16))
+        codes = [int(c) for c in index.codes]
+        for r in range(len(index.run_weight)):
+            a, b = int(index.run_start[r]), int(index.run_start[r + 1])
+            bits = (codes[a] ^ codes[b - 1]).bit_length()
+            block = 1 << (3 * -(-bits // 3))
+            start = codes[a] - codes[a] % block
+            assert (a == 0 or codes[a - 1] < start) and (b == len(codes) or codes[b] >= start + block)
+            weights.append(float(index.run_weight[r]))
+    assert 4_000 / 4 < np.median(weights) < 4_000 * 4

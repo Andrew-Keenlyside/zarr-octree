@@ -60,14 +60,17 @@ from zarr.codecs import BytesCodec, ZstdCodec
 from zarr_octree.codec import OctreeShardingCodec
 
 codec = OctreeShardingCodec(chunk_shape=(16, 16, 16), codecs=[BytesCodec(), ZstdCodec()],
-                            min_weight=16_000, max_weight=64_000)   # runs of 16–64 kB
+                            target=100_000)                         # the default: octree nodes aimed at 100 kB
 arr = zarr.create_array("data.zarr", shape=(256, 256, 256), chunks=(128, 128, 128),  # chunks = shard shape
                         serializer=codec, compressors=None, dtype="float32", fill_value=0)
 arr[:] = ...                                   # any zarr reads and writes
 ```
 
-Run bounds are in encoded bytes, or in any unit with a registered weigher
-(`register_weigher("vertices", fn)`, then `unit="vertices"`).
+`layout="octree"` (the default) groups inner chunks into the leaves of an
+octree aimed at `target`, with no hard bound; `layout="runs"` cuts Z-order runs
+between `min_weight` and `max_weight` instead.  Sizes are in encoded bytes, or
+in any unit with a registered weigher (`register_weigher("vertices", fn)`, then
+`unit="vertices"`).
 
 The store extension (experimental: zarr-python rejects arrays with storage
 transformers, so the store hides its own from zarr, and a store without the
@@ -90,8 +93,8 @@ store.flush()                                  # pack buffered writes into runs
 The array, its shards, inner chunks and keys are what `sharding_indexed`
 gives; only the bytes inside a shard differ (format in [`SPEC.md`](SPEC.md)):
 
-* inner chunks in Z-order, contiguous, grouped into runs bounded by
-  `min_weight` / `max_weight`;
+* inner chunks in Z-order, contiguous, grouped into runs: octree nodes aimed
+  at `target` (default), or Z-order runs bounded by `min_weight` / `max_weight`;
 * a **sparse index**: one row per stored chunk (a Z-order code and a length;
   offsets are implied) plus the run table, fetched with one suffix read;
 * partial reads fetch **one byte range per run touched**; `read_runs` hands
@@ -99,7 +102,7 @@ gives; only the bytes inside a shard differ (format in [`SPEC.md`](SPEC.md)):
 
 ## Status
 
-* 43 tests (`pytest`), passing on zarr 3.4.0 and 3.2.1.
+* 50 tests (`pytest`), passing on zarr 3.4.0 and 3.2.1.
 * The codec subclasses zarr's `ShardingCodec` and uses some of its private
   internals, so new zarr releases need testing.
 * The format is not frozen (checksum, index position).

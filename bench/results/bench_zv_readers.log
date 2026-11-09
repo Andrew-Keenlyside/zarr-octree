@@ -1,0 +1,37 @@
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+indexed-16 {'runs': 0, 'run_bytes_mean': None, 'run_bytes_median': None, 'run_bytes_cv': None, 'write_seconds': 47.53487435600255, 'disk_bytes': 55058643, 'vertex_bytes': 44511379, 'vertex_objects': 56, 'files': 121}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+octree10k-16 {'runs': 2168, 'run_bytes_mean': 18838.163745387454, 'run_bytes_median': 5917.5, 'run_bytes_cv': 2.946007667941862, 'write_seconds': 47.13070469396189, 'disk_bytes': 48213791, 'vertex_bytes': 41099931, 'vertex_objects': 56, 'files': 121}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+octree320k-16 {'runs': 91, 'run_bytes_mean': 448803.7252747253, 'run_bytes_median': 189380.0, 'run_bytes_cv': 2.803341745285657, 'write_seconds': 47.65890963701531, 'disk_bytes': 48185186, 'vertex_bytes': 41075007, 'vertex_objects': 56, 'files': 121}
+/home/andrew/scripts/zarr-vectors-py-octree/zarr_vectors/types/points.py:371: RuntimeWarning: This chunk_shape allocates a 58x57x64 grid = 211,584 cells. The per-cell cost of a write is fixed, so it is the cell count rather than the vertex count that sets the time. Consider a coarser chunk_shape.
+  with open_write_session(
+runs-16 {'runs': 115, 'run_bytes_mean': 355140.3391304348, 'run_bytes_median': 378089.0, 'run_bytes_cv': 0.6145217152836088, 'write_seconds': 45.85587009403389, 'disk_bytes': 48185536, 'vertex_bytes': 41075295, 'vertex_objects': 56, 'files': 121}
+lat   0  indexed-16/zarr          median    365.2 ms  requests      0
+lat   0  indexed-16/optimised     median    135.3 ms  requests      0
+lat   0  octree10k-16/zarr        median    412.1 ms  requests      0
+lat   0  octree10k-16/optimised   median    139.5 ms  requests      0
+lat   0  octree320k-16/zarr       median    390.5 ms  requests      0
+lat   0  octree320k-16/optimised  median    130.7 ms  requests      0
+lat   0  runs-16/zarr             median    392.6 ms  requests      0
+lat   0  runs-16/optimised        median    142.8 ms  requests      0
+lat  20  indexed-16/zarr          median    581.8 ms  requests    506
+lat  20  indexed-16/optimised     median    325.9 ms  requests     30
+lat  20  octree10k-16/zarr        median    612.6 ms  requests    506
+lat  20  octree10k-16/optimised   median    336.3 ms  requests     58
+lat  20  octree320k-16/zarr       median    627.8 ms  requests    506
+lat  20  octree320k-16/optimised  median    390.2 ms  requests     24
+lat  20  runs-16/zarr             median    607.1 ms  requests    506
+lat  20  runs-16/optimised        median    326.5 ms  requests     31
+lat  80  indexed-16/zarr          median   1260.7 ms  requests    506
+lat  80  indexed-16/optimised     median    749.3 ms  requests     30
+lat  80  octree10k-16/zarr        median   1300.6 ms  requests    506
+lat  80  octree10k-16/optimised   median    764.8 ms  requests     58
+lat  80  octree320k-16/zarr       median   1277.3 ms  requests    506
+lat  80  octree320k-16/optimised  median    797.5 ms  requests     24
+lat  80  runs-16/zarr             median   1296.9 ms  requests    506
+lat  80  runs-16/optimised        median    757.9 ms  requests     31
+-> results/bench_zv_readers.json

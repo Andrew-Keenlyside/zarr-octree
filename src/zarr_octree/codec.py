@@ -1,13 +1,19 @@
-"""``zarr_octree_sharding``: sharding with a sparse index and bounded Z-order runs.
+"""``zarr_octree_sharding``: sharding with a sparse index and octree runs.
 
 A drop-in alternative to Zarr v3's ``sharding_indexed`` codec (prototype B).
 The array, its chunk grid (the shards), its inner chunks and every key stay
 exactly as with ``sharding_indexed``; only the bytes inside a shard differ:
 
 * inner chunks are stored in Z-order (as ``sharding_indexed`` already does)
-  and grouped into **runs** -- contiguous byte ranges cut on the coarsest
-  octree boundaries -- weighing ``min_weight`` to ``max_weight`` each (see
-  :func:`zarr_octree.tree.build_runs`);
+  and grouped into **runs** -- contiguous byte ranges -- by one of two layouts:
+
+  - ``"octree"`` (the default): the leaves of an octree aimed at ``target``
+    (100,000 by default): a block is split while its children come closer to
+    the target than it is, with no hard bound either way (see
+    :func:`zarr_octree.tree.build_octree`);
+  - ``"runs"``: Z-order runs cut on the coarsest octree boundaries, weighing
+    ``min_weight`` to ``max_weight`` each (see :func:`zarr_octree.tree.build_runs`);
+
 * the index is **sparse**: one row per stored inner chunk, not one per
   possible inner chunk, plus the run table;
 * a partial read fetches **one byte range per run it touches**, all at once,
@@ -63,7 +69,7 @@ from zarr.core.chunk_grids import ChunkGrid
 from zarr.core.indexing import BasicIndexer, get_indexer
 from zarr.registry import register_codec
 
-from zarr_octree.tree import build_runs, morton
+from zarr_octree.tree import build_octree, build_runs, morton
 
 CODEC_NAME = "zarr_octree_sharding"
 INDEX_MAGIC, FOOTER_MAGIC = b"ZOSI", b"ZOSF"
@@ -71,6 +77,9 @@ INDEX_VERSION = 2
 _HEAD = struct.Struct("<4sBBBBII")  # magic, version, ndim, bits, length width, n_chunks, n_runs
 _FOOT = struct.Struct("<QI4s")  # index_nbytes, crc32, magic
 INDEX_READ_MIN = 4 << 10
+
+LAYOUTS = ("octree", "runs")
+DEFAULT_TARGET = 100_000
 
 _WEIGHERS: dict[str, Callable[[bytes], float]] = {}
 
@@ -200,15 +209,21 @@ def index_from_shard(buf: bytes, chunks_per_shard: tuple[int, ...]) -> ShardInde
 
 @dataclass(frozen=True)
 class OctreeShardingCodec(ShardingCodec):
-    """``sharding_indexed`` with a sparse index and min/max-bounded Z-order runs.
+    """``sharding_indexed`` with a sparse index and octree runs.
 
     Args:
         chunk_shape: Inner chunk shape (as for ``ShardingCodec``).
         codecs: Inner chunk codecs (as for ``ShardingCodec``).
-        min_weight, max_weight: Bounds on each run's weight.
+        layout: ``"octree"`` (leaves of an octree aimed at ``target``) or
+            ``"runs"`` (Z-order runs between ``min_weight`` and ``max_weight``).
+            Left out, it is ``"runs"`` when either bound is given, else ``"octree"``.
+        target: The weight the octree layout aims each run at (no hard bound).
+        min_weight, max_weight: Bounds on each run's weight, for the runs layout.
         unit: ``"bytes"`` (encoded inner-chunk bytes) or a registered weigher's name.
     """
 
+    layout: str = "octree"
+    target: float = DEFAULT_TARGET
     min_weight: float = 0
     max_weight: float = 1 << 20
     unit: str = "bytes"
@@ -220,16 +235,28 @@ class OctreeShardingCodec(ShardingCodec):
         codecs: Iterable[Any] = (),
         index_codecs: Any = None,  # accepted for dataclasses.replace; the index format is fixed
         index_location: Any = None,
-        min_weight: float = 0,
-        max_weight: float = 1 << 20,
+        layout: str | None = None,
+        target: float = DEFAULT_TARGET,
+        min_weight: float | None = None,
+        max_weight: float | None = None,
         unit: str = "bytes",
     ) -> None:
         kwargs = {"chunk_shape": chunk_shape}
         if codecs:
             kwargs["codecs"] = codecs
         super().__init__(**kwargs)
+        if layout is None:
+            layout = "runs" if min_weight is not None or max_weight is not None else "octree"
+        min_weight = 0 if min_weight is None else min_weight
+        max_weight = 1 << 20 if max_weight is None else max_weight
+        if layout not in LAYOUTS:
+            raise ValueError(f"layout must be one of {LAYOUTS}, got {layout!r}")
+        if target <= 0:
+            raise ValueError("target must be positive")
         if max_weight <= 0 or not 0 <= min_weight <= max_weight:
             raise ValueError("need 0 <= min_weight <= max_weight and max_weight > 0")
+        object.__setattr__(self, "layout", layout)
+        object.__setattr__(self, "target", float(target))
         object.__setattr__(self, "min_weight", float(min_weight))
         object.__setattr__(self, "max_weight", float(max_weight))
         object.__setattr__(self, "unit", str(unit))
@@ -243,8 +270,9 @@ class OctreeShardingCodec(ShardingCodec):
                 "version": INDEX_VERSION,
                 "chunk_shape": tuple(self.chunk_shape),
                 "codecs": tuple(c.to_dict() for c in self.codecs),
-                "min_weight": self.min_weight,
-                "max_weight": self.max_weight,
+                "layout": self.layout,
+                **({"target": self.target} if self.layout == "octree"
+                   else {"min_weight": self.min_weight, "max_weight": self.max_weight}),
                 "unit": self.unit,
             },
         }
@@ -256,6 +284,7 @@ class OctreeShardingCodec(ShardingCodec):
         cfg = dict(data.get("configuration", {}))
         if cfg.pop("version", INDEX_VERSION) != INDEX_VERSION:
             raise ValueError("unsupported zarr_octree_sharding version")
+        cfg.setdefault("layout", "runs")  # written before the octree layout existed
         return cls(**cfg)
 
     def __getstate__(self) -> dict[str, Any]:
@@ -263,7 +292,7 @@ class OctreeShardingCodec(ShardingCodec):
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         other = type(self).from_dict(state)
-        for k in ("chunk_shape", "codecs", "index_codecs", "index_location", "min_weight", "max_weight", "unit"):
+        for k in ("chunk_shape", "codecs", "index_codecs", "index_location", "layout", "target", "min_weight", "max_weight", "unit"):
             object.__setattr__(self, k, getattr(other, k))
         for k in ("_get_index_chunk_spec", "_get_chunks_per_shard", "_shard_index_size"):
             if k in other.__dict__:
@@ -375,7 +404,7 @@ class OctreeShardingCodec(ShardingCodec):
         """The stored chunks among ``wanted``: one byte range per run touched, fetched concurrently.
 
         Within a run the range spans only from the first to the last wanted
-        chunk, so it reads at most one run (``max_weight``) per request.
+        chunk, so it reads at most one run per request.
         """
         if not wanted or not len(index.codes):
             return {}
@@ -465,7 +494,7 @@ class OctreeShardingCodec(ShardingCodec):
             await byte_setter.set(buf)
 
     def _assemble(self, shard_dict: dict, chunks_per_shard: tuple[int, ...]) -> Buffer | None:
-        """Lay the stored chunks out in Z-order, cut them into runs, and append the index."""
+        """Lay the stored chunks out in Z-order, cut them into runs (per ``layout``), and append the index."""
         items = [(c, v) for c, v in shard_dict.items() if v is not None and len(v)]
         if not items:
             return None
@@ -477,7 +506,10 @@ class OctreeShardingCodec(ShardingCodec):
         lengths = np.array([len(v) for v in values], dtype=np.int64)
         offsets = np.concatenate([[0], np.cumsum(lengths)[:-1]]).astype(np.int64)
         weights = np.array([self._weigh(v) for v in values])
-        runs = build_runs(codes, weights, len(chunks_per_shard), self.min_weight, self.max_weight)
+        if self.layout == "octree":
+            runs = build_octree(codes, weights, len(chunks_per_shard), _bits(chunks_per_shard), self.target)
+        else:
+            runs = build_runs(codes, weights, len(chunks_per_shard), self.min_weight, self.max_weight)
         run_start = np.array([a for _, a, _ in runs] + [len(values)], dtype=np.int64)
         run_weight = np.array([weights[a:b].sum() for _, a, b in runs])
         index = ShardIndex(tuple(chunks_per_shard), codes, offsets, lengths, run_start, run_weight, coords)

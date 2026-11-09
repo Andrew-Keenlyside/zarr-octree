@@ -16,21 +16,18 @@ must return the same points.  Latency: the local store as it is (zarr-vectors
 reads shard files directly), or the store behind ``CountingStore`` with 20 /
 80 ms and 100 MB/s per request (zarr-vectors' object-store path).
 
-Readers (``VARIANTS``; the prototype branch's switches):
+Stores (``STORES``): ``sharding_indexed``, and zarr-octree's codec in its
+octree layout (aimed at 10 kB, and at 320 kB, about the runs'
+mean) and its runs layout (160-640 kB).
 
-* ``indexed``: zarr-vectors today -- a box query reads its cells through
-  zarr, which reads the shard index again for every cell (objects use the
-  pooled reader on a local store, zarr on a remote one);
-* ``indexed-batched``: the pooled reader for every query and store
-  (``ZARR_VECTORS_POOLED_SHARDED=1``): each index once, one request per cell;
-* ``indexed-gap``: that, with neighbouring cells sharing a request while the
-  gap is at most 64 KiB and the request at most 640 KB (the octree's
-  ``max_weight``) -- coalescing chosen by the query, with no octree;
-* ``octree-zarr``: the octree codec read as zarr-vectors reads it today
-  (through zarr: the codec's own reads, one range per run per cell asked);
-* ``octree-cells``: the octree codec read like ``indexed-batched``: its
-  smaller index, but one request per cell;
-* ``octree-runs``: one request per run touched (first to last wanted cell).
+Readers (``READERS``; zarr-vectors' ``ZARR_VECTORS_SHARD_READER``):
+
+* ``zarr``: through zarr's array API only -- the array's sharding codec reads
+  every cell (``sharding_indexed``: its dense index, then the cell's range;
+  zarr-octree: its sparse index, then one range per run per cell asked);
+* ``optimised``: zarr-vectors' own reader -- each shard index once per batch,
+  wanted cells' ranges coalesced (by run in a zarr-octree shard, by a gap of
+  at most 64 KiB and 1 MiB a range in any other) and fetched together.
 """
 
 from __future__ import annotations
@@ -51,9 +48,9 @@ CELLS = 64
 OBJECT_SIZE = 1000
 STORES = {  # name: (shard cells, codec, codec config)
     "indexed-16": (16, "sharding_indexed", {}),
-    "octree-16": (16, "zarr_octree_sharding", {"min_weight": 160_000, "max_weight": 640_000}),
-    "indexed-32": (32, "sharding_indexed", {}),
-    "octree-32": (32, "zarr_octree_sharding", {"min_weight": 160_000, "max_weight": 640_000}),
+    "octree10k-16": (16, "zarr_octree_sharding", {"target": 10_000}),
+    "octree320k-16": (16, "zarr_octree_sharding", {"target": 320_000}),
+    "runs-16": (16, "zarr_octree_sharding", {"layout": "runs", "min_weight": 160_000, "max_weight": 640_000}),
 }
 
 
@@ -88,7 +85,15 @@ def build(root: Path, name: str, pts: np.ndarray, ids: np.ndarray) -> dict:
     vert = [p for p in (path / "0" / "vertices").rglob("*") if p.is_file() and p.name != "zarr.json"]
     meta = json.loads((path / "0" / "vertices" / "zarr.json").read_text())
     assert meta["codecs"][0]["name"] == codec, meta["codecs"][0]["name"]
-    return {"write_seconds": seconds, "disk_bytes": sum(p.stat().st_size for p in files),
+    runs = []
+    if codec == "zarr_octree_sharding":
+        from zarr_octree.codec import index_from_shard
+
+        for f in vert:
+            runs += [b - a for a, b, _ in index_from_shard(f.read_bytes(), (shard,) * 3).runs()]
+    return {"runs": len(runs), "run_bytes_mean": float(np.mean(runs)) if runs else None,
+            "run_bytes_median": float(np.median(runs)) if runs else None,
+            "run_bytes_cv": float(np.std(runs) / np.mean(runs)) if runs else None,"write_seconds": seconds, "disk_bytes": sum(p.stat().st_size for p in files),
             "vertex_bytes": sum(p.stat().st_size for p in vert), "vertex_objects": len(vert), "files": len(files)}
 
 
@@ -115,16 +120,7 @@ class Reader:
             self.counter.counts.reset()
 
 
-GAP = "gap:65536:640000"
-VARIANTS = {  # label: (store kind, environment)
-    "indexed": ("indexed", {"ZARR_VECTORS_POOLED_SHARDED": "0", "ZARR_VECTORS_COALESCE": "none"}),
-    "indexed-batched": ("indexed", {"ZARR_VECTORS_POOLED_SHARDED": "1", "ZARR_VECTORS_COALESCE": "none"}),
-    "indexed-gap": ("indexed", {"ZARR_VECTORS_POOLED_SHARDED": "1", "ZARR_VECTORS_COALESCE": GAP}),
-    "octree-zarr": ("octree", {"ZARR_VECTORS_POOLED_SHARDED": "0", "ZARR_VECTORS_COALESCE": "runs"}),
-    "octree-cells": ("octree", {"ZARR_VECTORS_POOLED_SHARDED": "1", "ZARR_VECTORS_COALESCE": "none"}),
-    "octree-runs": ("octree", {"ZARR_VECTORS_POOLED_SHARDED": "1", "ZARR_VECTORS_COALESCE": "runs"}),
-}
-LOCAL_SAME: set[str] = set()  # variants whose reads equal another's on a local store
+READERS = ("zarr", "optimised")
 
 
 def main() -> None:
@@ -137,6 +133,7 @@ def main() -> None:
     ap.add_argument("--skip-build", action="store_true")
     ap.add_argument("--max-inflight", type=int, default=128)
     ap.add_argument("--bandwidth", type=float, default=100e6)
+    ap.add_argument("--latencies", type=float, nargs="+", help="seconds per request (default 0 0.02 0.08)")
     args = ap.parse_args()
     import zarr
 
@@ -164,7 +161,7 @@ def main() -> None:
         built_path.write_text(json.dumps(results["build"], indent=1))
 
     n_q = 3 if args.quick else 5
-    latencies = [0.0, 0.02] if args.quick else [0.0, 0.02, 0.08]
+    latencies = args.latencies or ([0.0, 0.02] if args.quick else [0.0, 0.02, 0.08])
     box_sizes = [31.25, 125.0] if args.quick else [31.25, 62.5, 125.0, 250.0]
     obj_counts = [1, 10]
     rng = np.random.default_rng(5)
@@ -182,12 +179,11 @@ def main() -> None:
     queries = []
     for latency in latencies:
         bw = args.bandwidth if latency else None
-        for shard in (16, 32):
-            for variant, (kind, env) in VARIANTS.items():
-                if not latency and variant in LOCAL_SAME:
-                    continue
-                os.environ.update(env)
-                name, label = f"{kind}-{shard}", f"{variant}-{shard}"
+        for name in STORES:
+            for mode in READERS:
+                os.environ["ZARR_VECTORS_SHARD_READER"] = mode
+                os.environ.pop("ZARR_VECTORS_COALESCE", None)
+                label = f"{name}/{mode}"
                 reader = Reader(args.stores, name, latency, bw, args.max_inflight)
                 for (size, placement), bs in boxes.items():
                     for qi, (lo, hi) in enumerate(bs):
@@ -212,7 +208,7 @@ def main() -> None:
                                         "seconds": dt, "requests": gets, "bytes_read": nbytes, "points": int(len(p)),
                                         "checksum": float(np.sort(p, axis=0).astype(np.float64).sum()) if len(p) else 0.0})
                 mine = [q for q in queries if q["layout"] == label and q["latency"] == latency]
-                print(f"lat {latency*1e3:3.0f}  {label:16s} median {np.median([q['seconds'] for q in mine])*1e3:8.1f} ms  "
+                print(f"lat {latency*1e3:3.0f}  {label:24s} median {np.median([q['seconds'] for q in mine])*1e3:8.1f} ms  "
                       f"requests {np.median([q['requests'] for q in mine]):6.0f}", flush=True)
     # Every layout must return the same points for the same query.
     for latency in latencies:

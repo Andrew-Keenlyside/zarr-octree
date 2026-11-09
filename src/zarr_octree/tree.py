@@ -162,6 +162,65 @@ def build_runs(
     return out
 
 
+def build_octree(
+    codes: np.ndarray,
+    weights: np.ndarray,
+    ndim: int,
+    bits: int,
+    target: float,
+) -> list[tuple[int, int, int]]:
+    """Cut one root's occupied cells into the leaves of an octree aimed at ``target``.
+
+    Starting from the root block (``bits`` levels), a block heavier than
+    ``target`` is split into its ``2 ** ndim`` children when the occupied
+    children are, on average, closer to ``target`` in log weight than the block
+    itself; otherwise it is a leaf.  No weight is a hard bound: a leaf can be
+    lighter or heavier than ``target``, so leaf weights taper off on both sides
+    of it rather than piling up under a limit.  Every leaf is an aligned octree
+    block, so it is one contiguous range of codes: the leaves, in code order,
+    are runs as :func:`build_runs` returns them.
+
+    Args:
+        codes: ``(m,)`` sorted, unique codes of the occupied cells.
+        weights: ``(m,)`` weight of each cell.
+        bits: Octree levels of the root (codes hold ``ndim * bits`` bits).
+
+    Returns:
+        ``[(block start code, start, stop), ...]``: each leaf block's first code
+        and its cells ``codes[start:stop]``.
+    """
+    codes = np.asarray(codes, dtype=np.uint64)
+    m = len(codes)
+    if m == 0:
+        return []
+    if m > 1 and not (codes[1:] > codes[:-1]).all():
+        raise ValueError("codes must be sorted and unique")
+    if target <= 0:
+        raise ValueError("target must be positive")
+    W = np.concatenate([[0.0], np.cumsum(np.asarray(weights, dtype=np.float64))])
+    out: list[tuple[int, int, int]] = []
+    log_t = np.log(target)
+
+    def visit(start_code: int, level: int, i: int, j: int) -> None:
+        w = W[j] - W[i]
+        if level > 0 and j - i > 1 and w > target:
+            step = 1 << (ndim * (level - 1))
+            edges = np.searchsorted(codes[i:j], np.uint64(start_code) + np.arange(1, 1 << ndim, dtype=np.uint64) * np.uint64(step)) + i
+            bounds = np.concatenate([[i], edges, [j]])
+            kw = W[bounds[1:]] - W[bounds[:-1]]
+            occupied = np.diff(bounds) > 0
+            heavy = kw[occupied & (kw > 0)]
+            if len(heavy) and np.mean(np.abs(np.log(heavy) - log_t)) < abs(np.log(w) - log_t):
+                for k in range(1 << ndim):
+                    if bounds[k + 1] > bounds[k]:
+                        visit(start_code + k * step, level - 1, int(bounds[k]), int(bounds[k + 1]))
+                return
+        out.append((start_code, i, j))
+
+    visit(0, bits, 0, m)
+    return out
+
+
 # -- node objects ---------------------------------------------------------------
 
 

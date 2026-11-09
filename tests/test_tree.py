@@ -5,6 +5,7 @@ from zarr_octree.tree import (
     NodeInfo,
     block_of,
     boundary_of,
+    build_octree,
     build_runs,
     decode_manifest,
     decode_node,
@@ -117,3 +118,37 @@ def test_rejects_unsorted_codes_and_oversized_codes():
         build_runs(np.array([3, 1], dtype=np.uint64), np.array([1, 1]), 2, 0, 10)
     with pytest.raises(ValueError):
         morton(np.zeros((1, 4)), 17)
+
+
+@pytest.mark.parametrize("target", [500, 5_000, 50_000])
+def test_octree_leaves_are_aligned_blocks_covering_every_cell(target):
+    rng = np.random.default_rng(4)
+    cells, weights = clustered_cells(rng)
+    codes = morton(cells, 6)
+    order = np.argsort(codes)
+    codes, weights = codes[order], weights[order]
+    leaves = build_octree(codes, weights, 3, 6, target)
+    assert [a for _, a, _ in leaves] == [0] + [b for _, _, b in leaves[:-1]] and leaves[-1][2] == len(codes)
+    for start, a, b in leaves:
+        block = next(1 << (3 * lv) for lv in range(7) if start % (1 << (3 * lv)) == 0 and int(codes[b - 1]) < start + (1 << (3 * lv)))
+        assert start <= int(codes[a])  # the run's cells lie in one aligned block
+        assert (a == 0 or int(codes[a - 1]) < start) and (b == len(codes) or int(codes[b]) >= start + block)  # which it owns
+
+
+def test_octree_spreads_around_the_target_with_no_hard_bound():
+    rng = np.random.default_rng(5)
+    cells, weights = clustered_cells(rng, n=20_000)
+    codes = morton(cells, 6)
+    order = np.argsort(codes)
+    codes, weights = codes[order], weights[order]
+    w = np.array([weights[a:b].sum() for _, a, b in build_octree(codes, weights, 3, 6, 20_000)])
+    assert w.sum() == weights.sum()
+    assert 20_000 / 4 < np.median(w) < 20_000 * 4  # aimed at the target
+    assert (w > 20_000).any() and (w < 20_000).any()  # on both sides of it: no limit
+
+
+def test_octree_keeps_a_light_root_and_splits_nothing_below_one_cell():
+    codes = np.array([0, 9, 200], dtype=np.uint64)
+    assert build_octree(codes, np.array([1.0, 1.0, 1.0]), 3, 3, 10_000) == [(0, 0, 3)]
+    leaves = build_octree(codes, np.array([5e5, 5e5, 5e5]), 3, 3, 10)
+    assert [(a, b) for _, a, b in leaves] == [(0, 1), (1, 2), (2, 3)]

@@ -204,6 +204,55 @@ def fig_zarr_api(res: dict, out: Path, shard: int = 16) -> None:
     plt.close(fig)
 
 
+STORE_ROWS = [  # (store, label) for bench_zv_readers.json
+    ("indexed-16", "constant chunks\n(sharding_indexed)"),
+    ("octree10k-16", "octree, 10 kB target"),
+    ("octree320k-16", "octree, 320 kB target"),
+    ("runs-16", "runs, 160–640 kB"),
+]
+READER_COLOR = {"zarr": "#2a78d6", "optimised": "#eb6834"}
+READER_LABEL = {"zarr": "through zarr's API only", "optimised": "zarr-vectors' optimised reader"}
+
+
+def fig_readers(res: dict, out: Path) -> None:
+    """Each store (sharding codec and layout) read both ways: query time at each latency, MB read at 20 ms, store size."""
+    med, mb = medians(res["queries"]), medians(res["queries"], "bytes_read")
+    lats = sorted({k[0] for k in med})
+    panels = [(f"Query time (ms), {'local' if not l else f'{l * 1e3:.0f} ms latency'}", med, l, 1e3) for l in lats]
+    panels += [("MB read per query (20 ms)", mb, 0.02, 1e-6), ("Store size (MB)", None, None, 1e-6)]
+    fig, axes = plt.subplots(1, len(panels), figsize=(2.45 * len(panels) + 1.6, 3.4), sharey=True)
+    y = np.arange(len(STORE_ROWS))[::-1].astype(float)
+    h = 0.36
+    for ax, (title, m, lat, scale) in zip(axes, panels):
+        top = 0.0
+        for yi, (store, _) in zip(y, STORE_ROWS):
+            if m is None:
+                v = res["build"][store]["disk_bytes"] * scale
+                ax.barh(yi, v, color=MUTED, height=2 * h * 0.9)
+                ax.text(v * 1.03, yi, f"{v:,.0f}" if v >= 10 else f"{v:,.1f}", va="center", fontsize=7.5, color=INK2)
+                top = max(top, v)
+                continue
+            for k, mode in enumerate(READER_COLOR):
+                v = geomean(m, lat, f"{store}/{mode}") * scale
+                yy = yi + (h / 2 if k == 0 else -h / 2)
+                ax.barh(yy, v, color=READER_COLOR[mode], height=h * 0.9)
+                ax.text(v * 1.03, yy, f"{v:,.0f}" if v >= 10 else f"{v:,.1f}", va="center", fontsize=7, color=INK2)
+                top = max(top, v)
+        ax.set_xlim(0, top * 1.35)
+        ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(3))
+        ax.grid(axis="y", visible=False)
+        ax.set_title(title, fontsize=8.5)
+    axes[0].set_yticks(y, [label for _, label in STORE_ROWS], fontsize=8.5)
+    axes[0].set_ylim(-0.6, len(STORE_ROWS) - 0.4)
+    from matplotlib.patches import Patch
+
+    fig.legend(handles=[Patch(color=c, label=READER_LABEL[m]) for m, c in READER_COLOR.items()],
+               loc="lower left", bbox_to_anchor=(0.0, -0.04), ncol=2, fontsize=8, frameon=False)
+    fig.tight_layout(w_pad=0.8, rect=(0, 0.06, 1, 1))
+    fig.savefig(out, dpi=160, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", type=Path, default=HERE / "results" / "bench_zv.json")
@@ -211,6 +260,10 @@ def main() -> None:
     args = ap.parse_args()
     res = json.loads(args.results.read_text())
     args.out.mkdir(parents=True, exist_ok=True)
+    if any("/" in q["layout"] for q in res["queries"]):  # bench_zv_readers.json: store/reader
+        fig_readers(res, args.out / "zv_readers.png")
+        print(f"-> {args.out}")
+        return
     fig_storage(res, args.out / "zv_storage.png")
     fig_zarr_api(res, args.out / "zv_zarr_api.png")
     fig_summary(res, args.out / "zv_summary.png")
