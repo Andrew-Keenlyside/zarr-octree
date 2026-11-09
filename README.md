@@ -13,17 +13,15 @@ zarr-vectors (option 1 of AllenInstitute/zarr-vectors-py#45).
 
 ![Constant chunks against an octree on a synthetic point cloud, and the size of their objects](bench/results/figures/concept.png)
 
-With constant chunks, every chunk is an object however many points it holds.
-An octree splits a node into eight only while it holds too many points, so a
-node covers a large volume where the data are sparse and a small one where
-they are dense, and empty space costs nothing.  zarr-octree goes one step
-further and cuts the octree's Z-order into **runs** between a minimum and a
-maximum size, which also merges the small nodes an octree leaves beside dense
-ones.  Every layout in the figure is tuned to the same mean object size
-(10,000 points), so they differ only in how evenly they spread the points:
-constant chunks over five orders of magnitude (CV 3.7), an octree with a
-limit or a target size less (CV 1.1), runs least (CV 0.26).  (Synthetic
-points: three clusters with broad tails, 2.27 M points;
+With constant chunks, every chunk is an object however many points it holds:
+here 3,244 objects of 1 to 63k points.  An octree splits a node into eight
+only where its children come closer to a target size (8k points) than the
+node itself, so a node covers a large volume where the data are sparse and a
+small one where they are dense, and empty space costs nothing: 330 objects,
+93 % of them within a decade of the target.  zarr-octree goes one step further
+and cuts the octree's Z-order into **runs** between a minimum and a maximum
+size, which also merges the small nodes an octree leaves beside dense ones.
+(Synthetic points: three clusters with broad tails, 2.27 M points;
 `bench/figures_concept.py`.)
 
 ## Results
@@ -38,8 +36,9 @@ API: geometric mean over 10 query types (boxes and objects), 16³-cell shards,
   (708 against 687 ms at 20 ms latency), **reads 26 % fewer bytes** per query
   and makes a **12 % smaller store** — its sparse index is 6 bytes per stored
   chunk against 16 bytes per possible chunk.
-* **Objects are even** (figure above): at the same mean size, runs spread 14×
-  less than constant chunks.
+* **Objects are even** (figure above): the octree's object sizes vary 4×
+  less than constant chunks' (CV 1.2 against 4.8), and the codec's runs are
+  bounded at both ends.
 * **A custom reader (▼) is where speed comes from**: reading each shard index
   once and merging neighbouring byte ranges halves query time at 20 ms
   latency, on either format.  It is a reader change, not a format change
