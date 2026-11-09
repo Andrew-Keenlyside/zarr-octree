@@ -10,6 +10,22 @@ sparse.  Option 1 of the octree-chunking proposal
 (AllenInstitute/zarr-vectors-py#45), built and tested only as a standalone
 Zarr extension; nothing here depends on zarr-vectors.
 
+## Octree runs against constant chunks
+
+![Constant chunks against an octree, and the size of their objects](bench/results/figures/concept.png)
+
+With constant chunks, every chunk is stored as its own object, however many
+points it holds: dense regions make large objects, sparse regions many tiny
+ones.  An octree keeps the same chunk grid for zarr, but stores neighbouring
+chunks together: a node is split into eight (four in this 2-D toy) only while it
+holds too many points, so a node covers a large area where the data are sparse
+and a small one where they are dense, and empty space costs nothing.  The
+octree bounds object size from above only — a sparse node beside a dense one
+stays small — so the layout here goes one step further and merges neighbouring
+small nodes, along the octree's Z-order, into runs between a minimum and a
+maximum size (see How it works).  The figure is made by
+`bench/figures_concept.py`.
+
 The on-disk format is in [`SPEC.md`](SPEC.md).
 
 ```python
