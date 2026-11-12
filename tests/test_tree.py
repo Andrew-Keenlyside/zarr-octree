@@ -152,3 +152,54 @@ def test_octree_keeps_a_light_root_and_splits_nothing_below_one_cell():
     assert build_octree(codes, np.array([1.0, 1.0, 1.0]), 3, 3, 10_000) == [(0, 0, 3)]
     leaves = build_octree(codes, np.array([5e5, 5e5, 5e5]), 3, 3, 10)
     assert [(a, b) for _, a, b in leaves] == [(0, 1), (1, 2), (2, 3)]
+
+
+def _check_runs(runs, codes, weights, ndim, bits, max_weight):
+    """``runs`` partition ``codes`` into consecutive runs on octree boundaries, each
+    within ``max_weight`` unless it is a single cell."""
+    m = len(codes)
+    assert runs[0][:2] == (0, 0) and runs[-1][2] == m
+    for (b0, a0, s0), (b1, a1, s1) in zip(runs, runs[1:]):
+        assert s0 == a1 and b0 < b1
+        assert codes[s0 - 1] < b1 <= codes[a1]
+    for b, a, s in runs:
+        assert s > a
+        assert s - a == 1 or weights[a:s].sum() <= max_weight
+        depth, at = block_of(b, ndim, bits)
+        assert boundary_of((depth, tuple(int(x) for x in at)), bits) == b
+
+
+@pytest.mark.parametrize(
+    "weights",
+    [
+        [100, 10_000],  # a heavy last cell
+        [10_000],  # one heavy cell alone
+        [100, 100, 10_000],
+        [10_000, 100],  # heavy first
+        [100, 10_000, 100],  # heavy in the middle
+        [10_000, 10_000, 10_000],  # every cell heavy
+        [3_000, 3_000, 3_000, 10_000],  # the last cell heavy after a full run
+    ],
+)
+@pytest.mark.parametrize("lo", [0, 500, 8_000])
+def test_runs_give_a_cell_heavier_than_max_weight_a_run_of_its_own(weights, lo):
+    codes = np.arange(len(weights), dtype=np.uint64)
+    w = np.array(weights, dtype=np.float64)
+    runs = build_runs(codes, w, 3, lo, 8_000)
+    _check_runs(runs, codes, w, 3, 1, 8_000)
+    for i in np.flatnonzero(w > 8_000):
+        assert any((a, b) == (i, i + 1) for _, a, b in runs)
+
+
+def test_runs_partition_random_shards():
+    rng = np.random.default_rng(1)
+    ndim = 3
+    for _ in range(800):
+        bits = int(rng.integers(1, 4))
+        m_all = 1 << (ndim * bits)
+        m = int(rng.integers(1, m_all + 1))
+        codes = np.sort(rng.choice(m_all, m, replace=False)).astype(np.uint64)
+        w = rng.lognormal(5, 2, m)
+        hi = float(rng.uniform(100, 3000))
+        lo = float(rng.uniform(0, min(500, hi)))
+        _check_runs(build_runs(codes, w, ndim, lo, hi), codes, w, ndim, bits, hi)

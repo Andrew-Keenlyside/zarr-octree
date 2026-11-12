@@ -138,11 +138,14 @@ def build_runs(
     out: list[tuple[int, int, int]] = []
     boundary, i = 0, 0
     while i < m:
-        if W[m] - W[i] <= max_weight:
+        if W[m] - W[i] <= max_weight or i == m - 1:
+            # The rest fits, or it is one cell heavier than max_weight: a run of its own.
             out.append((boundary, i, m))
             break
         jmax = max(i + 1, int(np.searchsorted(W, W[i] + max_weight, side="right")) - 1)
-        js = np.arange(i + 1, jmax + 1)  # run = cells[i:j]; j < m because the rest exceeds max_weight
+        # run = cells[i:j]; j < m because the rest exceeds max_weight and holds at
+        # least two cells (a single heavy cell before the end gives j = i + 1).
+        js = np.arange(i + 1, jmax + 1)
         w = W[js] - W[i]
         tail = W[m] - W[js]
         ok = (w >= min_weight) & ~((tail > 0) & (tail < min_weight))

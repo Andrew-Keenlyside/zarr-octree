@@ -192,6 +192,8 @@ def decode_index(body: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
 
 def _split_footer(tail: bytes) -> tuple[int, int]:
     """``(index_nbytes, crc)`` from the last bytes of a shard."""
+    if len(tail) < _FOOT.size:
+        raise ValueError(f"not a zarr_octree_sharding shard: {len(tail)} bytes, shorter than its {_FOOT.size}-byte footer")
     nbytes, crc, magic = _FOOT.unpack_from(tail, len(tail) - _FOOT.size)
     if magic != FOOTER_MAGIC:
         raise ValueError("not a zarr_octree_sharding shard (footer magic)")
@@ -201,6 +203,8 @@ def _split_footer(tail: bytes) -> tuple[int, int]:
 def index_from_shard(buf: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
     """The index of a whole shard's bytes."""
     nbytes, crc = _split_footer(buf)
+    if nbytes > len(buf) - _FOOT.size:
+        raise ValueError(f"zarr_octree_sharding shard is truncated: its index needs {nbytes + _FOOT.size} bytes, {len(buf)} given")
     body = buf[len(buf) - _FOOT.size - nbytes : len(buf) - _FOOT.size]
     if zlib.crc32(body) != crc:
         raise ValueError("zarr_octree_sharding index checksum mismatch")

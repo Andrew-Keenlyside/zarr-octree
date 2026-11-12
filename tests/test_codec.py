@@ -171,3 +171,40 @@ def test_octree_layout_runs_are_aligned_octree_blocks():
             assert (a == 0 or codes[a - 1] < start) and (b == len(codes) or codes[b] >= start + block)
             weights.append(float(index.run_weight[r]))
     assert 4_000 / 4 < np.median(weights) < 4_000 * 4
+
+
+@pytest.mark.parametrize("heavy_at", [(1, 1, 1), (0, 0, 0), (1, 0, 1)])
+def test_runs_layout_writes_a_cell_heavier_than_max_weight(heavy_at):
+    # The last cell in Z-order (1, 1, 1) heavier than max_weight once crashed the runs layout's writer.
+    rng = np.random.default_rng(0)
+    store = MemoryStore()
+    codec = OctreeShardingCodec(chunk_shape=(1, 1, 1), codecs=[VLenBytesCodec(), ZstdCodec()], layout="runs", min_weight=500, max_weight=2_000)
+    arr = zarr.create_array(store, name="pts", shape=(4, 4, 4), chunks=(2, 2, 2), serializer=codec, compressors=None, dtype="bytes")
+    cells = {c: rng.integers(0, 256, 5_000 if c == heavy_at else 50, dtype=np.uint8).tobytes()  # incompressible
+             for c in [(0, 1, 0), (1, 1, 0), heavy_at, (2, 3, 2)]}
+    write_cells(arr, cells)
+    arr = zarr.open_array(store, path="pts", mode="r")
+    np.testing.assert_array_equal(arr[...], as_object_array(cells, (4, 4, 4)))
+    index = index_from_shard(shard_objects(store)["pts/c/0/0/0"], (2, 2, 2))
+    heavy = [r for r, (a, b, w) in enumerate(index.runs()) if w > 2_000]
+    assert len(heavy) == 1 and index.run_start[heavy[0] + 1] - index.run_start[heavy[0]] == 1
+
+
+@pytest.mark.parametrize("keep", [0, 3, 15, 20, "half"])
+def test_a_truncated_shard_is_a_clear_format_error(keep):
+    store = MemoryStore()
+    write_cells(sharded(store), point_cells())
+    key, blob = next(iter(shard_objects(store).items()))
+    cut = blob[: len(blob) // 2] if keep == "half" else blob[:keep]
+    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+        index_from_shard(cut, (16, 16, 16))
+    tail = blob[-16:] if keep == "half" else cut  # a tail that is only the footer, or a short object
+    with pytest.raises(ValueError, match="zarr_octree_sharding|shorter than"):
+        dense_rows(tail, (16, 16, 16))
+    sync(store.set(key, default_buffer_prototype().buffer.from_bytes(cut)))
+    arr = zarr.open_array(store, path="pts", mode="r")
+    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+        arr[...]
+    first = tuple(16 * int(c) for c in key.split("/")[-3:])
+    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+        arr[first]  # a partial read: the index alone
