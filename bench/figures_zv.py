@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 import numpy as np
 
-from figures import HERE, INK2, MUTED
+from figures import HERE, INK2, MUTED, SURFACE
 
 # Fixed order, validated (dataviz validate_palette.js, light): colour follows the reader everywhere;
 # the marker (square: sharding_indexed, circle: octree) is the second cue.
@@ -31,7 +31,7 @@ LABEL = {
 STORE_COLOR = {"indexed": COLOR["indexed"], "octree": COLOR["octree-runs"]}
 STORE_LABEL = {"indexed": "sharding_indexed", "octree": "zarr_octree_sharding"}
 KINDS = [("box-dense", "Boxes centred on a vertex"), ("box-uniform", "Boxes placed uniformly"), ("objects", "Objects (~1,000 vertices each)")]
-MARK = dict(markersize=7, markeredgecolor="#fcfcfb", markeredgewidth=1.2)
+MARK = dict(markersize=7, markeredgecolor=SURFACE, markeredgewidth=1.2)
 
 
 def split(layout: str) -> tuple[str, int]:

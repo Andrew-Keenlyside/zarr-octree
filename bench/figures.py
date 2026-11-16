@@ -25,7 +25,7 @@ from zarr_octree import OctreeStore
 HERE = Path(__file__).parent
 
 # Reference palette (dataviz skill), light mode.  Colour follows the layout everywhere.
-SURFACE = "#fcfcfb"
+SURFACE = "#ffffff"
 INK = "#0b0b0b"
 INK2 = "#52514e"
 MUTED = "#8a8985"
