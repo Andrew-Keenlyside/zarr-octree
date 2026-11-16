@@ -1,49 +1,18 @@
 """``zarr_octree_sharding``: sharding with a sparse index and octree runs.
 
-A drop-in alternative to Zarr v3's ``sharding_indexed`` codec (prototype B).
-The array, its chunk grid (the shards), its inner chunks and every key stay
-exactly as with ``sharding_indexed``; only the bytes inside a shard differ:
+A drop-in alternative to Zarr v3's ``sharding_indexed``: the array, its shards,
+inner chunks and keys are unchanged; only the bytes inside a shard differ
+(format in ``SPEC.md``).  Inner chunks are stored in Z-order and grouped into
+**runs** -- the leaves of an octree aimed at ``target`` (``layout="octree"``,
+the default; :func:`zarr_octree.tree.build_octree`) or Z-order runs between
+``min_weight`` and ``max_weight`` (``layout="runs"``;
+:func:`zarr_octree.tree.build_runs`).  The index is sparse (one row per stored
+chunk) and a partial read fetches one byte range per run it touches.
 
-* inner chunks are stored in Z-order (as ``sharding_indexed`` already does)
-  and grouped into **runs** -- contiguous byte ranges -- by one of two layouts:
-
-  - ``"octree"`` (the default): the leaves of an octree aimed at ``target``
-    (100,000 by default): a block is split while its children come closer to
-    the target than it is, with no hard bound either way (see
-    :func:`zarr_octree.tree.build_octree`);
-  - ``"runs"``: Z-order runs cut on the coarsest octree boundaries, weighing
-    ``min_weight`` to ``max_weight`` each (see :func:`zarr_octree.tree.build_runs`);
-
-* the index is **sparse**: one row per stored inner chunk, not one per
-  possible inner chunk, plus the run table;
-* a partial read fetches **one byte range per run it touches**, all at once,
-  instead of one request per inner chunk.
-
-Shard layout (little endian)::
-
-    [inner chunks, in Z-order][index][footer]
-
-    index:  magic "ZOSI", version u8, ndim u8, bits u8, length width u8 (4 or 8),
-            n_chunks u32, n_runs u32,
-            codes u16/u32/u64[n] (Z-order code of each inner chunk within the shard,
-                sorted; the narrowest width holding ndim * bits bits),
-            lengths u32/u64[n] (the chunks are contiguous from byte 0, so offsets
-                are their running sum),
-            run_start u32[n_runs + 1] (first chunk of each run), run_weight f64[n_runs]
-    footer: index_nbytes u64, crc32 of the index u32, magic "ZOSF"
-
-That is 6 bytes per stored chunk for shards up to 32³ chunks, so a reader
-gets the whole index with one suffix read of :func:`index_read_nbytes`
-bytes -- half of ``sharding_indexed``'s dense index, which costs 16 bytes per
-possible chunk.
-
-The codec subclasses zarr's ``ShardingCodec``, so zarr (``Array.shards``,
-``Array.chunks``) and code built on its sharding API see an ordinary sharded
-array.  It overrides the async entry points and opts out of zarr's
-synchronous sharding fast path, which assumes the dense index.
-
-Weights are encoded inner-chunk bytes (``unit="bytes"``) or any unit with a
-weigher registered under its name (:func:`register_weigher`).
+The codec subclasses zarr's ``ShardingCodec`` so zarr sees an ordinary sharded
+array; it overrides the async entry points and opts out of zarr's synchronous
+sharding path, which assumes the dense index.  Weights are encoded bytes
+(``unit="bytes"``) or any unit with a weigher (:func:`register_weigher`).
 """
 
 from __future__ import annotations
@@ -331,6 +300,8 @@ class OctreeShardingCodec(ShardingCodec):
         need = nbytes + _FOOT.size
         if need > len(tail):
             more = await byte_getter.get(prototype=numpy_buffer_prototype(), byte_range=SuffixByteRequest(need))
+            if more is None:  # the shard was deleted between the two reads
+                return None
             tail = more.to_bytes()
         return index_from_shard(tail[len(tail) - need :], chunks_per_shard)
 

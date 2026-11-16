@@ -1,19 +1,7 @@
 import numpy as np
 import pytest
 
-from zarr_octree.tree import (
-    NodeInfo,
-    block_of,
-    boundary_of,
-    build_octree,
-    build_runs,
-    decode_manifest,
-    decode_node,
-    encode_manifest,
-    encode_node,
-    morton,
-    unmorton,
-)
+from zarr_octree.tree import build_octree, build_runs, morton, unmorton
 
 
 def clustered_cells(rng, n=4000, grid=64, ndim=3):
@@ -60,10 +48,6 @@ def test_runs_cover_each_cell_once_and_respect_the_bounds(ndim):
     single = np.array([b - a == 1 for _, a, b in runs])
     assert (weights[~single] <= hi).all()
     assert (weights[:-1] >= lo).mean() > 0.9  # light runs only where forced
-    # Boundaries sit on octree blocks: each names the block it starts.
-    for b, _, _ in runs:
-        depth, at = block_of(b, ndim, D)
-        assert boundary_of((depth, tuple(int(x) for x in at)), D) == b
 
 
 def test_boundaries_prefer_coarse_octree_blocks():
@@ -72,7 +56,8 @@ def test_boundaries_prefer_coarse_octree_blocks():
     codes = np.sort(morton(cells, 5))
     w = np.full(len(codes), 100)
     runs = build_runs(codes, w, 3, 2_000, 8_000)
-    depths = [block_of(b, 3, 5)[0] for b, _, _ in runs]
+    # Depth of the largest octree block starting at each boundary (0 = the whole root).
+    depths = [0 if b == 0 else 5 - min(((b & -b).bit_length() - 1) // 3, 5) for b, _, _ in runs]
     # Any cut point would do for uniform weights; the chosen ones are far coarser than a cell.
     assert np.mean(depths) < 4
 
@@ -86,31 +71,6 @@ def test_min_weight_merges_light_neighbours():
     with_min = build_runs(codes[order], w[order], 3, 10_000, 20_000)
     light = lambda runs: sum(w[order][a:b].sum() < 10_000 for _, a, b in runs)
     assert light(with_min) < light(without)
-
-
-def test_node_round_trip():
-    codes = np.array([7, 0, 300], dtype=np.uint64)
-    payloads = [b"seven", b"", b"x" * 1000]
-    node = decode_node(encode_node(2, (5, 6, 7), codes, payloads, max_depth=4))
-    assert node.depth == 2 and node.coords == (5, 6, 7) and node.root == (1, 1, 1)
-    assert node.cell(7) == b"seven" and node.cell(0) == b"" and node.cell(300) == b"x" * 1000
-    assert node.cell(8) is None
-    local = unmorton(np.array([7], dtype=np.uint64), 3, 4)[0]
-    assert node.cells()[tuple(int(x) for x in local + 16)] == b"seven"
-
-
-def test_node_bytes_do_not_depend_on_insertion_order():
-    codes = np.array([5, 1, 3], dtype=np.uint64)
-    payloads = [b"a", b"b", b"c"]
-    perm = [2, 0, 1]
-    assert encode_node(1, (0, 0), codes, payloads, max_depth=2) == encode_node(1, (0, 0), codes[perm], [payloads[i] for i in perm], max_depth=2)
-
-
-def test_manifest_round_trip():
-    nodes = {(0, (0, 0, 0)): NodeInfo(10, 2, 0, 9, 1.5), (3, (9, 8, 7)): NodeInfo(5_000_000_000, 70_000, 2**40, 2**62, 7e4)}
-    ndim, D, back = decode_manifest(encode_manifest(3, 6, nodes))
-    assert (ndim, D) == (3, 6)
-    assert back == nodes
 
 
 def test_rejects_unsorted_codes_and_oversized_codes():
@@ -155,7 +115,7 @@ def test_octree_keeps_a_light_root_and_splits_nothing_below_one_cell():
 
 
 def _check_runs(runs, codes, weights, ndim, bits, max_weight):
-    """``runs`` partition ``codes`` into consecutive runs on octree boundaries, each
+    """``runs`` partition ``codes`` into consecutive runs, each
     within ``max_weight`` unless it is a single cell."""
     m = len(codes)
     assert runs[0][:2] == (0, 0) and runs[-1][2] == m
@@ -165,8 +125,6 @@ def _check_runs(runs, codes, weights, ndim, bits, max_weight):
     for b, a, s in runs:
         assert s > a
         assert s - a == 1 or weights[a:s].sum() <= max_weight
-        depth, at = block_of(b, ndim, bits)
-        assert boundary_of((depth, tuple(int(x) for x in at)), bits) == b
 
 
 @pytest.mark.parametrize(

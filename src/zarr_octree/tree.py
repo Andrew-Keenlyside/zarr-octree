@@ -1,42 +1,17 @@
-"""Partition of a sparse chunk grid into runs of an octree's Z-order, and the on-disk formats.
+"""Morton (Z-order) codes and the two ways a shard's inner chunks are cut into runs.
 
-Pure numpy and ``struct``: no zarr, no I/O.
-
-Terms used throughout:
-
-* **cell** -- one chunk of the logical Zarr array, addressed by its chunk
-  coordinates.  Zarr reads and writes cells; it never sees nodes.
-* **root** -- a block of ``2 ** max_depth`` cells along every axis.  Roots
-  are partitioned independently, so an edit never reaches past its root.
-* **code** -- a cell's Morton (Z-order) code within its root: the bits of its
-  local coordinates interleaved.  Every aligned octree block of a root is one
-  contiguous range of codes.
-* **node** -- one stored object: the occupied cells of a contiguous range of
-  codes (a *run*).  A run's range starts on an octree boundary, chosen as
-  coarse as the size bounds allow, so a run is a union of a few octree blocks.
-  The node is named by the largest octree block that starts where it starts.
-* **weight** -- what the size bounds count: encoded bytes by default, or
-  anything a writer measures per cell (vertices, say).  Every node weighs at
-  most ``max_weight`` unless it is a single cell, and at least ``min_weight``
-  unless its root holds less in total or a lighter remainder could not be
-  merged without exceeding ``max_weight``.
+Pure numpy: no zarr, no I/O.  A shard is a block of ``2 ** bits`` inner
+chunks along every axis; a chunk's **code** is its local coordinates' bits
+interleaved, so every aligned octree block of the shard is one contiguous
+range of codes.  A **run** is a contiguous range of codes stored as one byte
+range.  :func:`build_octree` makes the runs the leaves of an octree aimed at a
+target weight; :func:`build_runs` cuts Z-order runs between a minimum and a
+maximum weight, on the coarsest octree boundaries.
 """
 
 from __future__ import annotations
 
-import struct
-from dataclasses import dataclass
-
 import numpy as np
-
-NODE_MAGIC = b"ZOCN"
-MANIFEST_MAGIC = b"ZOCM"
-FORMAT_VERSION = 2
-
-_NODE_HEADER = struct.Struct("<4sBBBBI")  # magic, version, ndim, depth, max_depth, n_cells
-_MANIFEST_HEADER = struct.Struct("<4sBBBxQ")  # magic, version, ndim, max_depth, n_nodes
-
-NodeKey = tuple[int, tuple[int, ...]]  # (depth, coords of the octree block the node starts at)
 
 
 # -- Morton codes ---------------------------------------------------------------
@@ -76,30 +51,6 @@ def _high_bit(x: np.ndarray) -> np.ndarray:
         h[big] += s
         x[big] >>= np.uint64(s)
     return h
-
-
-def block_of(boundary: int, ndim: int, max_depth: int) -> tuple[int, np.ndarray]:
-    """The largest octree block starting at code ``boundary``: ``(depth, local coords at that depth)``."""
-    if boundary == 0:
-        return 0, np.zeros(ndim, dtype=np.int64)
-    tz = (boundary & -boundary).bit_length() - 1
-    depth = max_depth - min(tz // ndim, max_depth)
-    local = unmorton(np.array([boundary], dtype=np.uint64), ndim, max_depth)[0]
-    return depth, local >> (max_depth - depth)
-
-
-def boundary_of(key: NodeKey, max_depth: int) -> int:
-    """The code where node ``key`` starts, within its root."""
-    depth, coords = key
-    shift = max_depth - depth
-    local = np.array(coords, dtype=np.int64) - ((np.array(coords, dtype=np.int64) >> depth) << depth)
-    return int(morton((local << shift)[None], max_depth)[0])
-
-
-def root_of(key: NodeKey) -> tuple[int, ...]:
-    """Coordinates of the root that contains node ``key``."""
-    depth, coords = key
-    return tuple(c >> depth for c in coords)
 
 
 # -- partition --------------------------------------------------------------------
@@ -222,147 +173,3 @@ def build_octree(
 
     visit(0, bits, 0, m)
     return out
-
-
-# -- node objects ---------------------------------------------------------------
-
-
-@dataclass
-class Node:
-    """A decoded node: where each cell's bytes sit inside the node object."""
-
-    depth: int
-    max_depth: int
-    coords: tuple[int, ...]
-    codes: np.ndarray  # (m,) sorted codes of the cells within the root
-    offsets: np.ndarray  # (m + 1,) absolute positions in ``data``
-    data: memoryview
-
-    def __len__(self) -> int:
-        return len(self.codes)
-
-    @property
-    def root(self) -> tuple[int, ...]:
-        return tuple(c >> self.depth for c in self.coords)
-
-    def cell(self, code: int) -> bytes | None:
-        i = int(np.searchsorted(self.codes, np.uint64(code)))
-        if i == len(self.codes) or int(self.codes[i]) != code:
-            return None
-        return bytes(self.data[self.offsets[i] : self.offsets[i + 1]])
-
-    def absolute(self) -> np.ndarray:
-        """``(m, ndim)`` absolute coordinates of the cells in the node."""
-        base = np.array(self.root, dtype=np.int64) << self.max_depth
-        return unmorton(self.codes, len(self.coords), self.max_depth) + base
-
-    def cells(self) -> dict[tuple[int, ...], bytes]:
-        """Every cell in the node, keyed by absolute cell coordinates."""
-        off = self.offsets
-        return {tuple(int(x) for x in row): bytes(self.data[off[i] : off[i + 1]]) for i, row in enumerate(self.absolute())}
-
-
-def encode_node(
-    depth: int,
-    coords: tuple[int, ...],
-    codes: np.ndarray,
-    payloads: list[bytes],
-    *,
-    max_depth: int,
-) -> bytes:
-    """Serialise one node.
-
-    Layout (little endian): header, node coords ``int64[ndim]``, cell codes
-    ``uint64[n]`` (sorted), offsets ``uint64[n + 1]`` relative to the start of
-    the payload, then the concatenated cell bytes in code order.  A node's
-    bytes depend only on its contents.
-    """
-    codes = np.asarray(codes, dtype=np.uint64).reshape(len(payloads))
-    order = np.argsort(codes, kind="stable")
-    payloads = [payloads[i] for i in order]
-    offsets = np.zeros(len(payloads) + 1, dtype="<u8")
-    offsets[1:] = np.cumsum([len(p) for p in payloads])
-    return b"".join(
-        [
-            _NODE_HEADER.pack(NODE_MAGIC, FORMAT_VERSION, len(coords), depth, max_depth, len(payloads)),
-            np.asarray(coords, dtype="<i8").tobytes(),
-            codes[order].astype("<u8").tobytes(),
-            offsets.tobytes(),
-            *payloads,
-        ]
-    )
-
-
-def decode_node(buf: bytes) -> Node:
-    view = memoryview(buf)
-    magic, version, ndim, depth, max_depth, n = _NODE_HEADER.unpack_from(view, 0)
-    if magic != NODE_MAGIC or version != FORMAT_VERSION:
-        raise ValueError("not a zarr-octree node object of this format version")
-    pos = _NODE_HEADER.size
-    coords = tuple(int(c) for c in np.frombuffer(view, "<i8", ndim, pos))
-    pos += 8 * ndim
-    codes = np.frombuffer(view, "<u8", n, pos)
-    pos += 8 * n
-    offsets = np.frombuffer(view, "<u8", n + 1, pos).astype(np.int64) + pos + 8 * (n + 1)
-    return Node(depth, max_depth, coords, codes, offsets, view)
-
-
-# -- manifest -------------------------------------------------------------------
-
-
-@dataclass
-class NodeInfo:
-    nbytes: int
-    ncells: int
-    first: int = 0  # code of the first and last occupied cell
-    last: int = 0
-    weight: float = 0.0
-
-
-def encode_manifest(ndim: int, max_depth: int, nodes: dict[NodeKey, NodeInfo]) -> bytes:
-    """Serialise the manifest: one row per stored node.
-
-    Layout: header, depth ``uint8[n]``, node coords ``int64[n, ndim]``, first
-    and last occupied code ``uint64[n]`` each, node size ``uint64[n]``, cell
-    count ``uint32[n]``, weight ``float64[n]``.  It lets a reader resolve any
-    cell to its node, or to "empty", without touching storage.
-    """
-    keys = sorted(nodes)
-    col = lambda f, dt: np.array([f(nodes[k]) for k in keys], dtype=dt)
-    return b"".join(
-        [
-            _MANIFEST_HEADER.pack(MANIFEST_MAGIC, FORMAT_VERSION, ndim, max_depth, len(keys)),
-            np.array([k[0] for k in keys], dtype="u1").tobytes(),
-            np.array([k[1] for k in keys], dtype="<i8").reshape(len(keys), ndim).tobytes(),
-            col(lambda i: i.first, "<u8").tobytes(),
-            col(lambda i: i.last, "<u8").tobytes(),
-            col(lambda i: i.nbytes, "<u8").tobytes(),
-            col(lambda i: i.ncells, "<u4").tobytes(),
-            col(lambda i: i.weight, "<f8").tobytes(),
-        ]
-    )
-
-
-def decode_manifest(buf: bytes) -> tuple[int, int, dict[NodeKey, NodeInfo]]:
-    view = memoryview(buf)
-    magic, version, ndim, max_depth, n = _MANIFEST_HEADER.unpack_from(view, 0)
-    if magic != MANIFEST_MAGIC or version != FORMAT_VERSION:
-        raise ValueError("not a zarr-octree manifest of this format version")
-    pos = _MANIFEST_HEADER.size
-
-    def take(dt: str, count: int) -> np.ndarray:
-        nonlocal pos
-        a = np.frombuffer(view, dt, count, pos)
-        pos += a.nbytes
-        return a
-
-    depth = take("u1", n)
-    coords = take("<i8", n * ndim).reshape(n, ndim)
-    first, last, size, count, weight = take("<u8", n), take("<u8", n), take("<u8", n), take("<u4", n), take("<f8", n)
-    nodes = {
-        (int(depth[i]), tuple(int(c) for c in coords[i])): NodeInfo(
-            int(size[i]), int(count[i]), int(first[i]), int(last[i]), float(weight[i])
-        )
-        for i in range(n)
-    }
-    return ndim, max_depth, nodes

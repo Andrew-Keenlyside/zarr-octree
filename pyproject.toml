@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zarr-octree"
-version = "0.2.0"
-description = "Octree chunk packing for Zarr v3: regular chunks for zarr, density-adaptive objects in storage"
+dynamic = ["version"]
+description = "A Zarr v3 sharding codec: a sparse shard index and inner chunks grouped into octree runs"
 requires-python = ">=3.11"
-dependencies = ["zarr>=3.0", "numpy"]
+dependencies = ["zarr>=3.2", "numpy"]  # the codec builds on zarr 3.2 sharding internals
 
 [project.entry-points."zarr.codecs"]
 zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"
@@ -15,6 +15,9 @@ zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"
 [project.optional-dependencies]
 test = ["pytest"]
 bench = ["matplotlib", "umap-learn", "scikit-learn"]
+
+[tool.setuptools.dynamic]
+version = {attr = "zarr_octree.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

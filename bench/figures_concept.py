@@ -17,7 +17,7 @@ import numpy as np
 from matplotlib.ticker import MaxNLocator, PercentFormatter
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
-from figures import COLOR, HERE, INK2, MUTED
+from style import COLOR, HERE, INK2, MUTED
 
 N = 128  # leaf chunks per axis: the octree's finest level
 CONST = 16  # constant chunks per axis

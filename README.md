@@ -5,9 +5,9 @@ sizes follow the density of the data: thousands of near-empty objects in
 sparse regions, huge ones in dense regions.  zarr-octree groups neighbouring
 chunks, along an octree's Z-order, into objects of bounded size, without
 changing the chunk grid zarr sees.  It is a sharding codec,
-`zarr_octree_sharding`, that unmodified zarr-python loads through its codec
-entry point, plus an experimental store extension.  Built for point clouds in
-zarr-vectors (option 1 of AllenInstitute/zarr-vectors-py#45).
+`zarr_octree_sharding`, that unmodified zarr-python (3.2 or later) loads
+through its codec entry point.  Built for point clouds in zarr-vectors
+(option 1 of AllenInstitute/zarr-vectors-py#45).
 
 ## Octree against constant chunks
 
@@ -57,7 +57,7 @@ The codec (`pip install -e .`; anyone reading the array needs the package too
 ```python
 import zarr
 from zarr.codecs import BytesCodec, ZstdCodec
-from zarr_octree.codec import OctreeShardingCodec
+from zarr_octree import OctreeShardingCodec
 
 codec = OctreeShardingCodec(chunk_shape=(16, 16, 16), codecs=[BytesCodec(), ZstdCodec()],
                             target=100_000)                         # the default: octree nodes aimed at 100 kB
@@ -71,22 +71,6 @@ octree aimed at `target`, with no hard bound; `layout="runs"` cuts Z-order runs
 between `min_weight` and `max_weight` instead.  Sizes are in encoded bytes, or
 in any unit with a registered weigher (`register_weigher("vertices", fn)`, then
 `unit="vertices"`).
-
-The store extension (experimental: zarr-python rejects arrays with storage
-transformers, so the store hides its own from zarr, and a store without the
-extension refuses the array):
-
-```python
-import zarr
-from zarr.storage import LocalStore
-from zarr_octree import OctreeConfig, OctreeStore
-
-config = OctreeConfig(max_depth=5, min_weight=16_000, max_weight=64_000)
-store = OctreeStore(LocalStore("points.zarr"), arrays={"pts": config})
-arr = zarr.create_array(store, name="pts", shape=(32, 32, 32), chunks=(1, 1, 1), dtype="bytes")
-arr.vindex[...] = ...                          # any zarr writes
-store.flush()                                  # pack buffered writes into runs
-```
 
 ## How the codec stores a shard
 
@@ -102,25 +86,24 @@ gives; only the bytes inside a shard differ (format in [`SPEC.md`](SPEC.md)):
 
 ## Status
 
-* 50 tests (`pytest`), passing on zarr 3.4.0 and 3.2.1.
-* The codec subclasses zarr's `ShardingCodec` and uses some of its private
-  internals, so new zarr releases need testing.
-* The format is not frozen (checksum, index position).
-* In zarr-vectors the codec and the new reader live on a local branch
-  (`octree-sharding-proto`) behind environment variables; nothing is
-  upstream yet.
-* Not done: concurrent writers, atomic updates, tests on real object stores.
+* 55 tests (`pytest`), passing on zarr 3.2.1.  The codec subclasses zarr's
+  `ShardingCodec` and uses some of its private internals, so it needs
+  zarr 3.2 or later, and new zarr releases need testing.
+* The format is not frozen.
+* zarr-vectors uses it on its `octree` branch (`Layout(octree=...)`,
+  `sharding.set_octree`).
+* Not done: concurrent writers to one shard, tests on real object stores.
 
 ## Files
 
 ```
 src/zarr_octree/codec.py       the zarr_octree_sharding codec
-src/zarr_octree/tree.py        Morton codes, run partition, node and manifest formats
-src/zarr_octree/store.py       the store extension (OctreeStore, convert)
+src/zarr_octree/tree.py        Morton codes and the two run partitions
 src/zarr_octree/instrument.py  counting / latency store for tests and benchmarks
 tests/                         pytest
 bench/make_points.py           the synthetic densMAP point cloud
-bench/bench*.py, figures*.py   benchmarks and their figures; results in bench/RESULTS.md
+bench/bench_zv.py              the codec through zarr-vectors; figures_zv.py draws it
 bench/figures_concept.py       the figure above
-SPEC.md                        on-disk formats
+bench/RESULTS.md               every benchmark and number
+SPEC.md                        the shard format
 ```

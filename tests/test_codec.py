@@ -15,7 +15,7 @@ from zarr.storage import MemoryStore
 from zarr_octree.codec import OctreeShardingCodec, dense_rows, index_from_shard, index_read_nbytes
 from zarr_octree.instrument import CountingStore
 
-from test_store import GRID, as_object_array, point_cells, write_cells
+from cells import GRID, as_object_array, point_cells, write_cells
 
 
 def sharded(store, shard=(16, 16, 16), lo=0, hi=8_000, name="pts", grid=GRID, layout="runs", target=4_000):
@@ -208,3 +208,22 @@ def test_a_truncated_shard_is_a_clear_format_error(keep):
     first = tuple(16 * int(c) for c in key.split("/")[-3:])
     with pytest.raises(ValueError, match="zarr_octree_sharding"):
         arr[first]  # a partial read: the index alone
+
+
+def test_a_shard_deleted_between_the_two_index_reads_reads_as_missing():
+    """The footer promises an index longer than the first read; the shard is gone by the second."""
+    from zarr_octree.codec import _FOOT, FOOTER_MAGIC
+
+    cps = (4, 4, 4)
+    first = (b"\0" * (index_read_nbytes(cps) - _FOOT.size)) + _FOOT.pack(10**6, 0, FOOTER_MAGIC)
+
+    class Getter:
+        calls = 0
+
+        async def get(self, prototype, byte_range=None):
+            self.calls += 1
+            return default_buffer_prototype().buffer.from_bytes(first) if self.calls == 1 else None
+
+    getter = Getter()
+    assert sync(OctreeShardingCodec(chunk_shape=(1, 1, 1))._load_index(getter, cps)) is None
+    assert getter.calls == 2
