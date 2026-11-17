@@ -147,7 +147,7 @@ def encode_index(index: ShardIndex, version: int = INDEX_VERSION) -> bytes:
     return body + _FOOT.pack(len(body), _crc(version, body), FOOTER_MAGIC)
 
 
-class InvalidIndex(ValueError):  # noqa: N818 -- reads as "raise InvalidIndex"
+class InvalidIndex(ValueError):
     """A shard index that is not a valid ``octree`` index (raised as ``ValueError``)."""
 
 

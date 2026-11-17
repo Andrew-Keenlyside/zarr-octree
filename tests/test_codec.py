@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pytest
 import zarr
+from cells import GRID, as_object_array, point_cells, write_cells
 from zarr.codecs import BytesCodec, VLenBytesCodec, ZstdCodec
 from zarr.core.buffer import default_buffer_prototype
 from zarr.core.sync import sync
@@ -14,8 +15,6 @@ from zarr.storage import MemoryStore
 
 from zarr_octree.codec import OctreeShardingCodec, dense_rows, index_from_shard, index_read_nbytes
 from zarr_octree.instrument import CountingStore
-
-from cells import GRID, as_object_array, point_cells, write_cells
 
 
 def sharded(store, shard=(16, 16, 16), lo=0, hi=8_000, name="pts", grid=GRID, layout="runs", target=4_000):
@@ -49,7 +48,7 @@ def test_runs_respect_the_bounds_and_the_index_is_sparse():
     store = MemoryStore()
     write_cells(sharded(store, lo=2_000, hi=8_000), cells)
     weights, n_stored = [], 0
-    for key, blob in shard_objects(store).items():
+    for blob in shard_objects(store).values():
         index = index_from_shard(blob, (16, 16, 16))
         n_stored += len(index.codes)
         for r, (a, b, w) in enumerate(index.runs()):
@@ -134,9 +133,9 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
         "else:\n    print('opened')\n"
     )
     probe = "import importlib.metadata as md; print(any(e.name in ('octree', 'zarr_octree_sharding') for e in md.entry_points(group='zarr.codecs')))"
-    if subprocess.run([sys.executable, "-I", "-c", probe], capture_output=True, text=True).stdout.strip() == "True":
+    if subprocess.run([sys.executable, "-I", "-c", probe], capture_output=True, text=True, check=False).stdout.strip() == "True":
         pytest.skip("zarr_octree is installed with its entry point in this environment; zarr would load it")
-    r = subprocess.run([sys.executable, "-I", "-c", code], input=json.dumps(meta), capture_output=True, text=True)
+    r = subprocess.run([sys.executable, "-I", "-c", code], input=json.dumps(meta), capture_output=True, text=True, check=False)
     assert r.stdout.startswith("refused"), r.stdout + r.stderr
 
 

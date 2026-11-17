@@ -5,6 +5,7 @@ import json
 import numpy as np
 import pytest
 import zarr
+from cells import as_object_array, point_cells, write_cells
 from zarr.codecs import BytesCodec, VLenBytesCodec, ZstdCodec
 from zarr.core.buffer import default_buffer_prototype
 from zarr.core.sync import sync
@@ -21,8 +22,6 @@ from zarr_octree.codec import (
     encode_index,
     index_from_shard,
 )
-
-from cells import as_object_array, point_cells, write_cells
 
 CPS = (3, 3, 3)  # bits = 2: codes address a 4 x 4 x 4 block, one row of which lies outside the shard
 
