@@ -4,10 +4,10 @@ Zarr stores every chunk of its regular grid as a separate object, so object
 sizes follow the density of the data: thousands of near-empty objects in
 sparse regions, huge ones in dense regions.  zarr-octree groups neighbouring
 chunks, along an octree's Z-order, into objects of bounded size, without
-changing the chunk grid zarr sees.  It is a sharding codec, `octree`, that
+changing the chunk grid zarr sees.  It is a sharding codec, `octree_sharding`, that
 unmodified zarr-python (3.2 or later) loads through its codec entry point.
 The format is specified in
-[`registry/codecs/octree/README.md`](registry/codecs/octree/README.md), the
+[`registry/codecs/octree_sharding/README.md`](registry/codecs/octree_sharding/README.md), the
 codec's proposed entry in the Zarr extensions registry.  Built for point clouds in zarr-vectors
 (option 1 of AllenInstitute/zarr-vectors-py#45).
 
@@ -79,7 +79,7 @@ in any unit with a registered weigher (`register_weigher("vertices", fn)`, then
 
 The array, its shards, inner chunks and keys are what `sharding_indexed`
 gives; only the bytes inside a shard differ (format in
-[`registry/codecs/octree/README.md`](registry/codecs/octree/README.md)):
+[`registry/codecs/octree_sharding/README.md`](registry/codecs/octree_sharding/README.md)):
 
 * inner chunks in Z-order, contiguous, grouped into runs: octree nodes aimed
   at `target` (default), or Z-order runs bounded by `min_weight` / `max_weight`;
@@ -90,7 +90,7 @@ gives; only the bytes inside a shard differ (format in
 
 ## Status
 
-* Proposed for the Zarr extensions registry as `octree`; the format is
+* Proposed for the Zarr extensions registry as `octree_sharding`; the format is
   frozen at index version 3.  Stores written by zarr-octree 0.3 and earlier
   (codec `zarr_octree_sharding`, index version 2) still read; nothing writes
   them any more.
@@ -114,6 +114,6 @@ bench/bench_zv.py              the codec through zarr-vectors; figures_zv.py dra
 bench/figures_concept.py       the figure above
 bench/bench_registry.py       octree against sharding_indexed (also in Z-order), through zarr alone
 bench/RESULTS.md               every benchmark and number
-registry/codecs/octree/        the format: the registry entry (README.md, schema.json, example.zarr)
+registry/codecs/octree_sharding/        the format: the registry entry (README.md, schema.json, example.zarr)
 registry/make_example.py       writes example.zarr and its annotated hex dump
 ```

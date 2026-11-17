@@ -11,13 +11,13 @@ codec, which needs no change to zarr; it is in the git history up to commit
 
 ## The codec
 
-`octree` (named `zarr_octree_sharding` before 0.4, when these benchmarks
+`octree_sharding` (named `zarr_octree_sharding` before 0.4, when these benchmarks
 were run) replaces `sharding_indexed`, so zarr-python needs no
 change: it finds the codec through the `zarr.codecs` entry point, and a reader
 without it refuses the array (unknown codec).  The array, its shards, inner
 chunks and keys are what `sharding_indexed` gives; only the bytes inside a
 shard differ (format in
-[`registry/codecs/octree/README.md`](../registry/codecs/octree/README.md)):
+[`registry/codecs/octree_sharding/README.md`](../registry/codecs/octree_sharding/README.md)):
 
 * a **sparse index**, one row per stored inner chunk (6 B up to 32³ chunks per
   shard), instead of the dense one (16 B per *possible* inner chunk); a reader
@@ -44,7 +44,7 @@ shard index once and coalesces ranges, on either codec).
 binned into a 128³ grid of cells, one `bytes` inner chunk a cell (float32
 xyz, zstd), shards of 16³ cells.  The same chunks in three stores:
 `sharding_indexed` as zarr writes it, the same shards with their chunks
-rewritten into Z-order (still `sharding_indexed`), and `octree` (default
+rewritten into Z-order (still `sharding_indexed`), and `octree_sharding` (default
 layout, leaves aimed at 100 kB).  Box queries through `zarr.open_array`
 behind `CountingStore` (20 ms, 100 MB/s a request), zarr-python 3.4.2;
 medians over 10 boxes centred on random points:

@@ -1,4 +1,4 @@
-"""``octree``: sharding with a sparse index and octree runs.
+"""``octree_sharding``: sharding with a sparse index and octree runs.
 
 A drop-in alternative to Zarr v3's ``sharding_indexed``: the array, its shards,
 inner chunks and keys are unchanged; only the bytes inside a shard differ
@@ -41,7 +41,7 @@ from zarr.registry import register_codec
 
 from zarr_octree.tree import build_octree, build_runs, morton
 
-CODEC_NAME = "octree"
+CODEC_NAME = "octree_sharding"
 LEGACY_NAMES = ("zarr_octree_sharding",)  # zarr-octree <= 0.3; read, never written
 INDEX_MAGIC, FOOTER_MAGIC = b"ZOSI", b"ZOSF"
 INDEX_VERSION = 3  # CRC-32C over the index; version 2 (zarr-octree <= 0.3) used CRC-32 and is still read
@@ -148,7 +148,7 @@ def encode_index(index: ShardIndex, version: int = INDEX_VERSION) -> bytes:
 
 
 class InvalidIndex(ValueError):
-    """A shard index that is not a valid ``octree`` index (raised as ``ValueError``)."""
+    """A shard index that is not a valid ``octree_sharding`` index (raised as ``ValueError``)."""
 
 
 def _bad(why: str) -> InvalidIndex:
