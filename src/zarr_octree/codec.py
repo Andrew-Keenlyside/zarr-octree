@@ -21,7 +21,7 @@ import asyncio
 import struct
 import zlib
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 import google_crc32c
@@ -257,14 +257,20 @@ class OctreeShardingCodec(ShardingCodec):
         *,
         chunk_shape: Any,
         codecs: Iterable[Any] = (),
-        index_codecs: Any = None,  # accepted for dataclasses.replace; the index format is fixed
-        index_location: Any = None,
         layout: str | None = None,
         target: float = DEFAULT_TARGET,
         min_weight: float | None = None,
         max_weight: float | None = None,
         unit: str = "bytes",
+        **inherited: Any,
     ) -> None:
+        # zarr rebuilds the codec with dataclasses.replace, which passes every
+        # ShardingCodec field (index_codecs, index_location, and from zarr 3.4
+        # subchunk_write_order).  They are accepted and ignored: this format
+        # fixes its index and its chunk order.
+        unknown = set(inherited) - {f.name for f in fields(ShardingCodec)}
+        if unknown:
+            raise TypeError(f"unexpected keyword arguments {sorted(unknown)}")
         kwargs = {"chunk_shape": chunk_shape}
         if codecs:
             kwargs["codecs"] = codecs

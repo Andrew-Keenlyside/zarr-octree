@@ -199,3 +199,16 @@ def test_run_weights_are_not_checked():
     ix = _index([0, 1], [4, 4], [0, 2])
     ix.run_weight[:] = np.nan
     assert index_from_shard(_shard(ix), CPS).codes.tolist() == [0, 1]
+
+
+def test_zarr_can_rebuild_the_codec_with_dataclasses_replace():
+    """zarr's evolve_from_array_spec calls dataclasses.replace, passing every ShardingCodec field."""
+    import dataclasses
+    import pickle
+
+    c = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], layout="runs", min_weight=1, max_weight=9)
+    d = dataclasses.replace(c, codecs=(BytesCodec(endian="big"),))
+    assert (d.layout, d.min_weight, d.max_weight) == ("runs", 1, 9) and d.codecs[0].to_dict()["configuration"]["endian"] == "big"
+    assert pickle.loads(pickle.dumps(c)) == c
+    with pytest.raises(TypeError, match="unexpected"):
+        OctreeShardingCodec(chunk_shape=(2, 2), not_a_field=1)
