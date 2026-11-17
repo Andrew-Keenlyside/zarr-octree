@@ -26,21 +26,35 @@ chunk.  For a sparse array that index can be larger than the data: a shard of
 `octree` codec's index costs 6 bytes per *stored* chunk (for shards of up to
 32³ inner chunks) and nothing for absent ones.
 
-The run table lets a reader fetch every wanted chunk of a run with one byte
-range, and lets consumers that work in bounded units (GPU batches, graph
-partitions) take whole runs.  A `sharding_indexed` writer may also store its
-chunks in Z-order, but its index cannot record the grouping, and a reader of
-it has no bound on what a merged byte range spans.
+The run table records a grouping of the chunks that the writer chose, such as
+octree leaves of about equal weight.  Consumers that work in bounded units
+(GPU batches, graph partitions) can take whole runs, and a reader can fetch a
+run's wanted chunks with one byte range.  A `sharding_indexed` writer may also
+store its chunks in Z-order, but its index cannot record the grouping.
 
-On a clustered point cloud of 2 M points in a 128³ grid of cells (one inner
-chunk per cell), sharded 16³ cells per shard:
+On a clustered point cloud of 2 M points in a 128³ grid of cells, with one
+inner chunk per cell (the points' float32 coordinates, zstd), sharded 16³
+cells per shard, and read through zarr-python 3.4.2 behind a store with 20 ms
+latency and 100 MB/s per request:
 
-<!-- BENCH -->
+| | `sharding_indexed` | `sharding_indexed`, chunks in Z-order | `octree` |
+| - | - | - | - |
+| store size | 64.0 MB | 64.0 MB | 33.1 MB |
+| of which index | 33.6 MB (64 KiB a shard) | 33.6 MB | 2.7 MB (5.1 KiB a shard) |
+| 8³-cell box: requests, data read, time | 4, 0.66 MB, 121 ms | 4, 0.59 MB, 121 ms | 8, 0.36 MB, 113 ms |
+| 32³-cell box: requests, data read, time | 53, 5.7 MB, 5.0 s | 53, 5.5 MB, 6.0 s | 78, 4.4 MB, 4.7 s |
 
-The benchmark is `bench/bench_registry.py` in the implementation's
-repository.  Most of the request saving comes from the reader fetching a run
-per request.  A `sharding_indexed` reader that merges adjacent ranges gets
-part of it, and that column shows how much.
+(Medians over 10 boxes centred on random points.  The raw coordinates are
+24 MB.)
+
+The sparse index halves this store and cuts the data a query reads by a
+quarter.  Query times are similar: zarr-python 3.4 already batches nearby
+ranges of a `sharding_indexed` shard into few requests, and its reader of
+this codec makes one request per run touched.  Placing `sharding_indexed`'s
+chunks in Z-order changes nothing through zarr.  So the case for the codec is
+its index size, and runs as units for consumers that want them, not query
+speed.  The benchmark is `bench/bench_registry.py` in the implementation's
+repository.
 
 ## Codec metadata
 
