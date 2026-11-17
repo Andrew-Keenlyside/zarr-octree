@@ -15,7 +15,7 @@ classifiers = ["Programming Language :: Python :: 3", "Topic :: Scientific/Engin
 dependencies = ["zarr>=3.2", "numpy", "google-crc32c>=1.5"]  # the codec builds on zarr 3.2 sharding internals
 
 [project.entry-points."zarr.codecs"]
-octree = "zarr_octree.codec:OctreeShardingCodec"
+octree_sharding = "zarr_octree.codec:OctreeShardingCodec"
 zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"  # stores written by zarr-octree <= 0.3
 
 [project.optional-dependencies]

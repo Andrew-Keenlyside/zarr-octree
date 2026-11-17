@@ -1,8 +1,8 @@
-"""``octree`` against ``sharding_indexed``, including ``sharding_indexed`` with its chunks in Z-order.
+"""``octree_sharding`` against ``sharding_indexed``, including ``sharding_indexed`` with its chunks in Z-order.
 
 The comparison for the zarr-extensions proposal: ``sharding_indexed`` already
 lets a writer place inner chunks in any order, so a writer could store the
-octree codec's Z-order layout today.  What ``octree`` adds is its sparse index
+octree codec's Z-order layout today.  What ``octree_sharding`` adds is its sparse index
 and its run table; this measures what each is worth.
 
 Pure zarr (no zarr-vectors).  Data: a clustered point cloud binned into a
@@ -13,7 +13,7 @@ Three stores of the same chunks:
 * ``indexed``: zarr's ``sharding_indexed`` as zarr writes it (chunks in C order);
 * ``indexed-zorder``: the same shards rewritten with the chunks in Z-order (the
   dense index updated) -- still plain ``sharding_indexed``;
-* ``octree``: the ``octree`` codec, default layout (octree leaves aimed at 100 kB).
+* ``octree``: the ``octree_sharding`` codec, default layout (octree leaves aimed at 100 kB).
 
 Measured: store and index size; for box queries through zarr's API, requests,
 bytes and time behind a store with 20 ms latency and 100 MB/s per request;
@@ -121,7 +121,7 @@ def stored_positions(name: str, blob: bytes) -> tuple[np.ndarray, np.ndarray, np
 
 def merged_ranges(stored, wanted: set[int]) -> tuple[int, int]:
     """Byte ranges and bytes for a reader that fetches wanted chunks, merging adjacent ones (no gap)."""
-    pos, off, ln, _ = stored
+    pos, _off, ln, _ = stored
     hit = np.isin(pos, list(wanted))
     if not hit.any():
         return 0, 0

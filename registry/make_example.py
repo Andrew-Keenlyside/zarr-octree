@@ -1,6 +1,6 @@
 """Write the registry entry's example array and print its metadata and one shard, annotated.
 
-    python registry/make_example.py   # writes registry/codecs/octree/example.zarr
+    python registry/make_example.py   # writes registry/codecs/octree_sharding/example.zarr
 """
 
 from __future__ import annotations
@@ -13,10 +13,10 @@ import numpy as np
 import zarr
 from zarr.codecs import BytesCodec
 
-from zarr_octree.codec import _FOOT, _HEAD, index_from_shard
 from zarr_octree import OctreeShardingCodec
+from zarr_octree.codec import _FOOT, _HEAD, index_from_shard
 
-OUT = Path(__file__).parent / "codecs" / "octree" / "example.zarr"
+OUT = Path(__file__).parent / "codecs" / "octree_sharding" / "example.zarr"
 
 
 def main() -> None:

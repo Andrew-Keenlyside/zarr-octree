@@ -1,4 +1,4 @@
-"""``octree``: sharding with a sparse index and octree runs.
+"""``octree_sharding``: sharding with a sparse index and octree runs.
 
 A drop-in alternative to Zarr v3's ``sharding_indexed``: the array, its shards,
 inner chunks and keys are unchanged; only the bytes inside a shard differ
@@ -21,7 +21,7 @@ import asyncio
 import struct
 import zlib
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 import google_crc32c
@@ -41,7 +41,7 @@ from zarr.registry import register_codec
 
 from zarr_octree.tree import build_octree, build_runs, morton
 
-CODEC_NAME = "octree"
+CODEC_NAME = "octree_sharding"
 LEGACY_NAMES = ("zarr_octree_sharding",)  # zarr-octree <= 0.3; read, never written
 INDEX_MAGIC, FOOTER_MAGIC = b"ZOSI", b"ZOSF"
 INDEX_VERSION = 3  # CRC-32C over the index; version 2 (zarr-octree <= 0.3) used CRC-32 and is still read
@@ -148,7 +148,7 @@ def encode_index(index: ShardIndex, version: int = INDEX_VERSION) -> bytes:
 
 
 class InvalidIndex(ValueError):
-    """A shard index that is not a valid ``octree`` index (raised as ``ValueError``)."""
+    """A shard index that is not a valid ``octree_sharding`` index (raised as ``ValueError``)."""
 
 
 def _bad(why: str) -> InvalidIndex:
@@ -257,14 +257,20 @@ class OctreeShardingCodec(ShardingCodec):
         *,
         chunk_shape: Any,
         codecs: Iterable[Any] = (),
-        index_codecs: Any = None,  # accepted for dataclasses.replace; the index format is fixed
-        index_location: Any = None,
         layout: str | None = None,
         target: float = DEFAULT_TARGET,
         min_weight: float | None = None,
         max_weight: float | None = None,
         unit: str = "bytes",
+        **inherited: Any,
     ) -> None:
+        # zarr rebuilds the codec with dataclasses.replace, which passes every
+        # ShardingCodec field (index_codecs, index_location, and from zarr 3.4
+        # subchunk_write_order).  They are accepted and ignored: this format
+        # fixes its index and its chunk order.
+        unknown = set(inherited) - {f.name for f in fields(ShardingCodec)}
+        if unknown:
+            raise TypeError(f"unexpected keyword arguments {sorted(unknown)}")
         kwargs = {"chunk_shape": chunk_shape}
         if codecs:
             kwargs["codecs"] = codecs

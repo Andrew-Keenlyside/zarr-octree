@@ -1,6 +1,6 @@
-"""``octree``: a Zarr v3 sharding codec with a sparse index and octree runs.
+"""``octree_sharding``: a Zarr v3 sharding codec with a sparse index and octree runs.
 
-The format is specified in ``registry/codecs/octree/README.md``.
+The format is specified in ``registry/codecs/octree_sharding/README.md``.
 """
 
 from zarr_octree.codec import CODEC_NAME, InvalidIndex, OctreeShardingCodec, register_weigher
