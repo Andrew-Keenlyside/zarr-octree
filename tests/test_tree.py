@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pytest
 
@@ -41,7 +43,7 @@ def test_runs_cover_each_cell_once_and_respect_the_bounds(ndim):
     lo, hi = 5_000, 20_000
     runs = build_runs(codes, w, ndim, lo, hi)
     assert runs[0][0] == 0 and runs[0][1] == 0 and runs[-1][2] == len(codes)
-    for (b0, a0, s0), (b1, a1, s1) in zip(runs, runs[1:]):
+    for (b0, a0, s0), (b1, a1, s1) in itertools.pairwise(runs):
         assert s0 == a1 and b0 < b1  # consecutive, increasing ranges
         assert codes[s0 - 1] < b1 <= codes[a1]  # the boundary separates the runs
     weights = np.array([w[a:b].sum() for _, a, b in runs])
@@ -69,7 +71,9 @@ def test_min_weight_merges_light_neighbours():
     order = np.argsort(codes)
     without = build_runs(codes[order], w[order], 3, 0, 20_000)
     with_min = build_runs(codes[order], w[order], 3, 10_000, 20_000)
-    light = lambda runs: sum(w[order][a:b].sum() < 10_000 for _, a, b in runs)
+    def light(runs):
+        return sum(w[order][a:b].sum() < 10_000 for _, a, b in runs)
+
     assert light(with_min) < light(without)
 
 
@@ -119,7 +123,7 @@ def _check_runs(runs, codes, weights, ndim, bits, max_weight):
     within ``max_weight`` unless it is a single cell."""
     m = len(codes)
     assert runs[0][:2] == (0, 0) and runs[-1][2] == m
-    for (b0, a0, s0), (b1, a1, s1) in zip(runs, runs[1:]):
+    for (b0, a0, s0), (b1, a1, s1) in itertools.pairwise(runs):
         assert s0 == a1 and b0 < b1
         assert codes[s0 - 1] < b1 <= codes[a1]
     for b, a, s in runs:

@@ -11,11 +11,13 @@ codec, which needs no change to zarr; it is in the git history up to commit
 
 ## The codec
 
-`zarr_octree_sharding` replaces `sharding_indexed`, so zarr-python needs no
+`octree` (named `zarr_octree_sharding` before 0.4, when these benchmarks
+were run) replaces `sharding_indexed`, so zarr-python needs no
 change: it finds the codec through the `zarr.codecs` entry point, and a reader
 without it refuses the array (unknown codec).  The array, its shards, inner
 chunks and keys are what `sharding_indexed` gives; only the bytes inside a
-shard differ (format in [`SPEC.md`](../SPEC.md)):
+shard differ (format in
+[`registry/codecs/octree/README.md`](../registry/codecs/octree/README.md)):
 
 * a **sparse index**, one row per stored inner chunk (6 B up to 32³ chunks per
   shard), instead of the dense one (16 B per *possible* inner chunk); a reader
@@ -34,6 +36,39 @@ zarr's sharding API work unchanged.
 this codec, `sharding.set_octree` converts an existing store, and
 `ZARR_VECTORS_SHARD_READER` picks the shard reader (`optimised` reads each
 shard index once and coalesces ranges, on either codec).
+
+## Against `sharding_indexed`, through zarr alone
+
+`bench/bench_registry.py` (results: `results/bench_registry.json` and
+`.log`), the comparison for the registry proposal.  2 M clustered points
+binned into a 128³ grid of cells, one `bytes` inner chunk a cell (float32
+xyz, zstd), shards of 16³ cells.  The same chunks in three stores:
+`sharding_indexed` as zarr writes it, the same shards with their chunks
+rewritten into Z-order (still `sharding_indexed`), and `octree` (default
+layout, leaves aimed at 100 kB).  Box queries through `zarr.open_array`
+behind `CountingStore` (20 ms, 100 MB/s a request), zarr-python 3.4.2;
+medians over 10 boxes centred on random points:
+
+| store | size | index | 8³ box: requests / MB / ms | 32³ box: requests / MB / ms |
+| - | - | - | - | - |
+| `sharding_indexed` | 64.0 MB | 33.6 MB | 4 / 0.66 / 121 | 53 / 5.73 / 4,952 |
+| `sharding_indexed`, Z-order | 64.0 MB | 33.6 MB | 4 / 0.59 / 121 | 53 / 5.54 / 5,990 |
+| `octree` | 33.1 MB | 2.7 MB | 8 / 0.36 / 113 | 78 / 4.35 / 4,749 |
+
+* **The sparse index halves the store** (the dense index is 52 % of the
+  `sharding_indexed` store) and **a query reads a quarter less**.
+* **Query times are similar.**  zarr-python 3.4 batches nearby ranges of a
+  `sharding_indexed` shard into few requests; the codec's reader makes one
+  request per run touched, so on large boxes it makes more requests.
+  Merging adjacent runs into one request is a possible reader improvement.
+* **Z-order placement alone changes nothing through zarr.**  A reader merging
+  adjacent wanted chunks would need about as many ranges either way (925
+  against 915 for a 32³ box); the gain is the index.
+
+On **zarr-python 3.2.1** (the quick run: 300 k points, 3 boxes a size), zarr
+fetched every inner chunk of a `sharding_indexed` shard with its own request:
+8,743 requests and 50 s for a 32³ box, against the codec's 53 requests and
+2.9 s.  That gap closed in zarr 3.4.
 
 ## Reading through zarr-vectors
 

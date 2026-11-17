@@ -1,4 +1,4 @@
-"""Prototype B: the zarr_octree_sharding codec, through zarr's own API."""
+"""The octree codec, through zarr's own API."""
 
 import json
 import subprocess
@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pytest
 import zarr
+from cells import GRID, as_object_array, point_cells, write_cells
 from zarr.codecs import BytesCodec, VLenBytesCodec, ZstdCodec
 from zarr.core.buffer import default_buffer_prototype
 from zarr.core.sync import sync
@@ -14,8 +15,6 @@ from zarr.storage import MemoryStore
 
 from zarr_octree.codec import OctreeShardingCodec, dense_rows, index_from_shard, index_read_nbytes
 from zarr_octree.instrument import CountingStore
-
-from cells import GRID, as_object_array, point_cells, write_cells
 
 
 def sharded(store, shard=(16, 16, 16), lo=0, hi=8_000, name="pts", grid=GRID, layout="runs", target=4_000):
@@ -49,7 +48,7 @@ def test_runs_respect_the_bounds_and_the_index_is_sparse():
     store = MemoryStore()
     write_cells(sharded(store, lo=2_000, hi=8_000), cells)
     weights, n_stored = [], 0
-    for key, blob in shard_objects(store).items():
+    for blob in shard_objects(store).values():
         index = index_from_shard(blob, (16, 16, 16))
         n_stored += len(index.codes)
         for r, (a, b, w) in enumerate(index.runs()):
@@ -92,11 +91,13 @@ def test_edits_and_deletes():
     rng = np.random.default_rng(0)
     for c in [keys[i] for i in rng.choice(len(keys), 40, replace=False)]:
         expect[c] = b"\x02" * int(rng.integers(1, 5000))
-        v = np.empty((1, 1, 1), dtype=object); v.flat[0] = expect[c]
+        v = np.empty((1, 1, 1), dtype=object)
+        v.flat[0] = expect[c]
         arr[c[0]:c[0] + 1, c[1]:c[1] + 1, c[2]:c[2] + 1] = v
     for c in [keys[i] for i in rng.choice(len(keys), 40, replace=False)]:
         expect.pop(c, None)
-        v = np.empty((1, 1, 1), dtype=object); v.flat[0] = b""
+        v = np.empty((1, 1, 1), dtype=object)
+        v.flat[0] = b""
         arr[c[0]:c[0] + 1, c[1]:c[1] + 1, c[2]:c[2] + 1] = v
     np.testing.assert_array_equal(zarr.open_array(store, path="pts")[...], as_object_array(expect))
 
@@ -118,7 +119,8 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
     write_cells(sharded(store, lo=10, hi=20), {(0, 0, 0): b"x"})
     meta = json.loads(sync(store.get("pts/zarr.json", default_buffer_prototype())).to_bytes())
     codec = meta["codecs"][0]
-    assert codec["name"] == "zarr_octree_sharding" and codec["configuration"]["max_weight"] == 20
+    assert codec["name"] == "octree"
+    assert codec["configuration"]["layout"] == {"name": "runs", "configuration": {"min_weight": 10, "max_weight": 20, "unit": "bytes"}}
     # A fresh interpreter that has not imported zarr_octree (and has no entry point for it).
     code = (
         "import json, sys, zarr\n"
@@ -130,10 +132,10 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
         "try:\n    zarr.open_array(s, path='a', mode='r')\nexcept Exception as e:\n    print('refused', type(e).__name__)\n"
         "else:\n    print('opened')\n"
     )
-    probe = "import importlib.metadata as md; print(any(e.name == 'zarr_octree_sharding' for e in md.entry_points(group='zarr.codecs')))"
-    if subprocess.run([sys.executable, "-I", "-c", probe], capture_output=True, text=True).stdout.strip() == "True":
+    probe = "import importlib.metadata as md; print(any(e.name in ('octree', 'zarr_octree_sharding') for e in md.entry_points(group='zarr.codecs')))"
+    if subprocess.run([sys.executable, "-I", "-c", probe], capture_output=True, text=True, check=False).stdout.strip() == "True":
         pytest.skip("zarr_octree is installed with its entry point in this environment; zarr would load it")
-    r = subprocess.run([sys.executable, "-I", "-c", code], input=json.dumps(meta), capture_output=True, text=True)
+    r = subprocess.run([sys.executable, "-I", "-c", code], input=json.dumps(meta), capture_output=True, text=True, check=False)
     assert r.stdout.startswith("refused"), r.stdout + r.stderr
 
 
@@ -142,7 +144,7 @@ def test_codec_round_trips_through_its_dict():
     assert c.layout == "runs" and OctreeShardingCodec.from_dict(c.to_dict()) == c
     d = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], target=500)
     assert d.layout == "octree" and OctreeShardingCodec.from_dict(d.to_dict()) == d
-    assert "min_weight" not in d.to_dict()["configuration"]
+    assert d.to_dict()["configuration"]["layout"] == {"name": "octree", "configuration": {"target": 500, "unit": "bytes"}}
 
 
 def test_default_is_an_octree_aimed_at_100k_and_old_metadata_reads_as_runs():
@@ -196,17 +198,17 @@ def test_a_truncated_shard_is_a_clear_format_error(keep):
     write_cells(sharded(store), point_cells())
     key, blob = next(iter(shard_objects(store).items()))
     cut = blob[: len(blob) // 2] if keep == "half" else blob[:keep]
-    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+    with pytest.raises(ValueError, match="octree shard"):
         index_from_shard(cut, (16, 16, 16))
     tail = blob[-16:] if keep == "half" else cut  # a tail that is only the footer, or a short object
-    with pytest.raises(ValueError, match="zarr_octree_sharding|shorter than"):
+    with pytest.raises(ValueError, match="octree shard|shorter than"):
         dense_rows(tail, (16, 16, 16))
     sync(store.set(key, default_buffer_prototype().buffer.from_bytes(cut)))
     arr = zarr.open_array(store, path="pts", mode="r")
-    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+    with pytest.raises(ValueError, match="octree shard"):
         arr[...]
     first = tuple(16 * int(c) for c in key.split("/")[-3:])
-    with pytest.raises(ValueError, match="zarr_octree_sharding"):
+    with pytest.raises(ValueError, match="octree shard"):
         arr[first]  # a partial read: the index alone
 
 

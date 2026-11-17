@@ -1,0 +1,752 @@
+{
+ "zarr": "3.4.2",
+ "points": 2000000,
+ "cells": 443377,
+ "grid": 128,
+ "shard_cells": 16,
+ "stores": {
+  "indexed": {
+   "shards": 512,
+   "bytes": 63981660,
+   "index_bytes": 33556480
+  },
+  "indexed-zorder": {
+   "shards": 512,
+   "bytes": 63981660,
+   "index_bytes": 33556480
+  },
+  "octree": {
+   "shards": 512,
+   "bytes": 33112202,
+   "index_bytes": 2687022
+  }
+ },
+ "queries": {
+  "indexed": [
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 66540,
+    "seconds": 0.04654965968802571,
+    "merged_ranges": 1,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 74710,
+    "seconds": 0.044393975753337145,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 65832,
+    "seconds": 0.0430716909468174,
+    "merged_ranges": 3,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 184034,
+    "seconds": 0.04627964831888676,
+    "merged_ranges": 8,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 66374,
+    "seconds": 0.04442186886444688,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 955839,
+    "seconds": 0.053622919134795666,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 77369,
+    "seconds": 0.044695086777210236,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 66134,
+    "seconds": 0.04470235016196966,
+    "merged_ranges": 3,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 68808,
+    "seconds": 0.044374780263751745,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 77432,
+    "seconds": 0.04413561662659049,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 2,
+    "bytes": 369731,
+    "seconds": 0.12327828677371144,
+    "merged_ranges": 56,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 280340,
+    "seconds": 0.12003884138539433,
+    "merged_ranges": 42,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 235653,
+    "seconds": 0.11122699873521924,
+    "merged_ranges": 105,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 627989,
+    "seconds": 0.1197507050819695,
+    "merged_ranges": 149,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 524987,
+    "seconds": 0.08492668718099594,
+    "merged_ranges": 9,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 1100002,
+    "seconds": 0.12534430110827088,
+    "merged_ranges": 194,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 749784,
+    "seconds": 0.13659512344747782,
+    "merged_ranges": 176,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 2,
+    "bytes": 1691764,
+    "seconds": 0.14221706287935376,
+    "merged_ranges": 88,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 704944,
+    "seconds": 0.11700771888718009,
+    "merged_ranges": 176,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 694732,
+    "seconds": 0.12193444091826677,
+    "merged_ranges": 88,
+    "shards": 2
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 4901789,
+    "seconds": 5.77307988377288,
+    "merged_ranges": 1121,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 34,
+    "bytes": 4500359,
+    "seconds": 4.935752626042813,
+    "merged_ranges": 721,
+    "shards": 18
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5847869,
+    "seconds": 4.960648710373789,
+    "merged_ranges": 379,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5720116,
+    "seconds": 4.2975405333563685,
+    "merged_ranges": 561,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 2176479,
+    "seconds": 3.3636256572790444,
+    "merged_ranges": 294,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 6373230,
+    "seconds": 4.943299941252917,
+    "merged_ranges": 1250,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5733498,
+    "seconds": 5.588432671967894,
+    "merged_ranges": 869,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 3493893,
+    "seconds": 4.85176679585129,
+    "merged_ranges": 961,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 6665989,
+    "seconds": 6.234340905677527,
+    "merged_ranges": 2279,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5752251,
+    "seconds": 5.551555664744228,
+    "merged_ranges": 1227,
+    "shards": 27
+   }
+  ],
+  "indexed-zorder": [
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 66540,
+    "seconds": 0.04516365611925721,
+    "merged_ranges": 1,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 83882,
+    "seconds": 0.04438459128141403,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 65960,
+    "seconds": 0.04296975117176771,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 107127,
+    "seconds": 0.044284479692578316,
+    "merged_ranges": 8,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 66196,
+    "seconds": 0.044046611059457064,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 206556,
+    "seconds": 0.04557229904457927,
+    "merged_ranges": 8,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 79633,
+    "seconds": 0.044708482921123505,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 65825,
+    "seconds": 0.0437577529810369,
+    "merged_ranges": 5,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 69659,
+    "seconds": 0.04431555001065135,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 68628,
+    "seconds": 0.04506782442331314,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 2,
+    "bytes": 352870,
+    "seconds": 0.12374579114839435,
+    "merged_ranges": 132,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 257115,
+    "seconds": 0.13032333878800273,
+    "merged_ranges": 42,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 267730,
+    "seconds": 0.11808902490884066,
+    "merged_ranges": 62,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 452272,
+    "seconds": 0.1228201980702579,
+    "merged_ranges": 150,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 525132,
+    "seconds": 0.08559335535392165,
+    "merged_ranges": 9,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 1305983,
+    "seconds": 0.13351353211328387,
+    "merged_ranges": 194,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 658773,
+    "seconds": 0.11691687628626823,
+    "merged_ranges": 88,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 2,
+    "bytes": 861324,
+    "seconds": 0.1239561690017581,
+    "merged_ranges": 176,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 828574,
+    "seconds": 0.11773779103532434,
+    "merged_ranges": 90,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 686788,
+    "seconds": 0.11871025199070573,
+    "merged_ranges": 70,
+    "shards": 2
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5254453,
+    "seconds": 6.778400741983205,
+    "merged_ranges": 1673,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 34,
+    "bytes": 3704178,
+    "seconds": 5.961333720944822,
+    "merged_ranges": 628,
+    "shards": 18
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5680296,
+    "seconds": 6.793518251273781,
+    "merged_ranges": 688,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5500387,
+    "seconds": 5.731375620234758,
+    "merged_ranges": 677,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 2254968,
+    "seconds": 4.6360995708964765,
+    "merged_ranges": 529,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 6159699,
+    "seconds": 6.019568318966776,
+    "merged_ranges": 722,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5769096,
+    "seconds": 6.948267253115773,
+    "merged_ranges": 1232,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 3422562,
+    "seconds": 5.287786839064211,
+    "merged_ranges": 1573,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 7504741,
+    "seconds": 6.082572821993381,
+    "merged_ranges": 1424,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 53,
+    "bytes": 5582273,
+    "seconds": 4.516235827002674,
+    "merged_ranges": 1128,
+    "shards": 27
+   }
+  ],
+  "octree": [
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 37896,
+    "seconds": 0.0460552959702909,
+    "merged_ranges": 1,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 55238,
+    "seconds": 0.0461689718067646,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 37316,
+    "seconds": 0.04384556086733937,
+    "merged_ranges": 2,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 78483,
+    "seconds": 0.04577122861519456,
+    "merged_ranges": 8,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 37552,
+    "seconds": 0.04497662279754877,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 3,
+    "bytes": 45083,
+    "seconds": 0.046714985743165016,
+    "merged_ranges": 8,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 50989,
+    "seconds": 0.047034872230142355,
+    "merged_ranges": 4,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 37181,
+    "seconds": 0.045003924053162336,
+    "merged_ranges": 5,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 41015,
+    "seconds": 0.04633366409689188,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 2,
+    "gets": 2,
+    "bytes": 39984,
+    "seconds": 0.045280208345502615,
+    "merged_ranges": 7,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 9,
+    "bytes": 185254,
+    "seconds": 0.12988697784021497,
+    "merged_ranges": 132,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 199827,
+    "seconds": 0.1072293370962143,
+    "merged_ranges": 42,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 4,
+    "bytes": 210442,
+    "seconds": 0.10478537809103727,
+    "merged_ranges": 62,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 7,
+    "bytes": 353207,
+    "seconds": 0.10508254077285528,
+    "merged_ranges": 150,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 56889,
+    "seconds": 0.06868208991363645,
+    "merged_ranges": 9,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 11,
+    "bytes": 622970,
+    "seconds": 0.11500328918918967,
+    "merged_ranges": 194,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 6,
+    "bytes": 455986,
+    "seconds": 0.11633025296032429,
+    "merged_ranges": 88,
+    "shards": 2
+   },
+   {
+    "size": 8,
+    "gets": 12,
+    "bytes": 791520,
+    "seconds": 0.141318139154464,
+    "merged_ranges": 176,
+    "shards": 1
+   },
+   {
+    "size": 8,
+    "gets": 16,
+    "bytes": 599422,
+    "seconds": 0.11354907602071762,
+    "merged_ranges": 90,
+    "shards": 8
+   },
+   {
+    "size": 8,
+    "gets": 7,
+    "bytes": 357792,
+    "seconds": 0.11333122290670872,
+    "merged_ranges": 70,
+    "shards": 2
+   },
+   {
+    "size": 32,
+    "gets": 70,
+    "bytes": 4065473,
+    "seconds": 4.628367027267814,
+    "merged_ranges": 1673,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 56,
+    "bytes": 2698120,
+    "seconds": 4.631787764839828,
+    "merged_ranges": 628,
+    "shards": 18
+   },
+   {
+    "size": 32,
+    "gets": 82,
+    "bytes": 4784806,
+    "seconds": 5.561249795835465,
+    "merged_ranges": 688,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 78,
+    "bytes": 4208929,
+    "seconds": 4.734225628897548,
+    "merged_ranges": 677,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 55,
+    "bytes": 912737,
+    "seconds": 3.629083574283868,
+    "merged_ranges": 529,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 81,
+    "bytes": 4782558,
+    "seconds": 4.775893263053149,
+    "merged_ranges": 722,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 78,
+    "bytes": 4814963,
+    "seconds": 5.405949234962463,
+    "merged_ranges": 1232,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 61,
+    "bytes": 2389382,
+    "seconds": 4.365066633094102,
+    "merged_ranges": 1573,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 91,
+    "bytes": 5992319,
+    "seconds": 5.488498668186367,
+    "merged_ranges": 1424,
+    "shards": 27
+   },
+   {
+    "size": 32,
+    "gets": 78,
+    "bytes": 4497223,
+    "seconds": 4.7634796388447285,
+    "merged_ranges": 1128,
+    "shards": 27
+   }
+  ]
+ }
+}
