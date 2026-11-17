@@ -6,11 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "zarr-octree"
 dynamic = ["version"]
 description = "A Zarr v3 sharding codec: a sparse shard index and inner chunks grouped into octree runs"
-requires-python = ">=3.11"
-dependencies = ["zarr>=3.2", "numpy"]  # the codec builds on zarr 3.2 sharding internals
+requires-python = ">=3.12"  # zarr 3.2 needs 3.12
+dependencies = ["zarr>=3.2", "numpy", "google-crc32c>=1.5"]  # the codec builds on zarr 3.2 sharding internals
 
 [project.entry-points."zarr.codecs"]
-zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"
+octree = "zarr_octree.codec:OctreeShardingCodec"
+zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"  # stores written by zarr-octree <= 0.3
 
 [project.optional-dependencies]
 test = ["pytest"]

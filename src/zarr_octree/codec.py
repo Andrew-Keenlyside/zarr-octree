@@ -1,4 +1,4 @@
-"""``zarr_octree_sharding``: sharding with a sparse index and octree runs.
+"""``octree``: sharding with a sparse index and octree runs.
 
 A drop-in alternative to Zarr v3's ``sharding_indexed``: the array, its shards,
 inner chunks and keys are unchanged; only the bytes inside a shard differ
@@ -24,6 +24,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
+import google_crc32c
 import numpy as np
 from zarr.abc.store import RangeByteRequest, SuffixByteRequest
 from zarr.codecs.sharding import (
@@ -40,9 +41,11 @@ from zarr.registry import register_codec
 
 from zarr_octree.tree import build_octree, build_runs, morton
 
-CODEC_NAME = "zarr_octree_sharding"
+CODEC_NAME = "octree"
+LEGACY_NAMES = ("zarr_octree_sharding",)  # zarr-octree <= 0.3; read, never written
 INDEX_MAGIC, FOOTER_MAGIC = b"ZOSI", b"ZOSF"
-INDEX_VERSION = 2
+INDEX_VERSION = 3  # CRC-32C over the index; version 2 (zarr-octree <= 0.3) used CRC-32 and is still read
+READ_VERSIONS = (2, 3)
 _HEAD = struct.Struct("<4sBBBBII")  # magic, version, ndim, bits, length width, n_chunks, n_runs
 _FOOT = struct.Struct("<QI4s")  # index_nbytes, crc32, magic
 INDEX_READ_MIN = 4 << 10
@@ -121,63 +124,111 @@ class ShardIndex:
         return out
 
 
-def encode_index(index: ShardIndex) -> bytes:
+def _crc(version: int, body: bytes) -> int:
+    return zlib.crc32(body) if version == 2 else google_crc32c.value(body)
+
+
+def encode_index(index: ShardIndex, version: int = INDEX_VERSION) -> bytes:
+    """The index and footer for ``index`` (``version=2`` only to make legacy shards for tests)."""
+    if version not in READ_VERSIONS:
+        raise ValueError(f"unknown index version {version}")
     n, r = len(index.codes), len(index.run_weight)
     ndim, bits = len(index.chunks_per_shard), _bits(index.chunks_per_shard)
     if not np.array_equal(index.offsets, np.concatenate([[0], np.cumsum(index.lengths)[:-1]]) if n else index.offsets):
-        raise ValueError("zarr_octree_sharding stores its chunks contiguously from byte 0")
+        raise ValueError("an octree shard stores its chunks contiguously from byte 0")
     width = 4 if n == 0 or int(index.lengths.max()) < 1 << 32 else 8
     body = b"".join([
-        _HEAD.pack(INDEX_MAGIC, INDEX_VERSION, ndim, bits, width, n, r),
+        _HEAD.pack(INDEX_MAGIC, version, ndim, bits, width, n, r),
         index.codes.astype(_code_dtype(ndim, bits)).tobytes(),
         index.lengths.astype(f"<u{width}").tobytes(),
         index.run_start.astype("<u4").tobytes(),
         index.run_weight.astype("<f8").tobytes(),
     ])
-    return body + _FOOT.pack(len(body), zlib.crc32(body), FOOTER_MAGIC)
+    return body + _FOOT.pack(len(body), _crc(version, body), FOOTER_MAGIC)
+
+
+class InvalidIndex(ValueError):  # noqa: N818 -- reads as "raise InvalidIndex"
+    """A shard index that is not a valid ``octree`` index (raised as ``ValueError``)."""
+
+
+def _bad(why: str) -> InvalidIndex:
+    return InvalidIndex(f"invalid octree shard index: {why}")
 
 
 def decode_index(body: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
+    """Decode and check an index body (between the shard's data and its footer).
+
+    Every check the format requires of a reader is made here, so a damaged or
+    hostile index raises ``ValueError`` instead of returning wrong chunks.
+    """
+    if len(body) < _HEAD.size:
+        raise _bad(f"{len(body)} bytes, shorter than its {_HEAD.size}-byte header")
     magic, version, ndim, bits, width, n, r = _HEAD.unpack_from(body, 0)
-    if magic != INDEX_MAGIC or version != INDEX_VERSION or ndim != len(chunks_per_shard):
-        raise ValueError("not a zarr_octree_sharding index")
+    if magic != INDEX_MAGIC:
+        raise _bad("index magic")
+    if version not in READ_VERSIONS:
+        raise _bad(f"unsupported version {version}")
+    if ndim != len(chunks_per_shard):
+        raise _bad(f"written for {ndim} dimensions, the array has {len(chunks_per_shard)}")
+    if bits != _bits(chunks_per_shard):
+        raise _bad("written for another shard shape")
+    if width not in (4, 8):
+        raise _bad(f"length width {width}")
+    code_dt = np.dtype(_code_dtype(ndim, bits))
+    want = _HEAD.size + n * (code_dt.itemsize + width) + (r + 1) * 4 + r * 8
+    if len(body) != want:
+        raise _bad(f"{len(body)} bytes, its counts ({n} chunks, {r} runs) need {want}")
     pos = _HEAD.size
 
-    def take(dt: str, count: int) -> np.ndarray:
+    def take(dt: Any, count: int) -> np.ndarray:
         nonlocal pos
         a = np.frombuffer(body, dt, count, pos)
         pos += a.nbytes
         return a
 
-    if bits != _bits(chunks_per_shard):
-        raise ValueError("zarr_octree_sharding index was written for another shard shape")
-    codes = take(_code_dtype(ndim, bits), n).astype(np.uint64)
-    lengths = take(f"<u{width}", n).astype(np.uint64)
+    codes = take(code_dt, n).astype(np.uint64)
+    lengths = take(np.dtype(f"<u{width}"), n).astype(np.uint64)
+    run_start, run_weight = take(np.dtype("<u4"), r + 1).astype(np.int64), take(np.dtype("<f8"), r)
+    if n and not (codes[1:] > codes[:-1]).all():
+        raise _bad("codes are not sorted and unique")
+    if n and not (lengths > 0).all():
+        raise _bad("a stored chunk has length 0")
+    if (n == 0) != (r == 0):
+        raise _bad(f"{n} chunks in {r} runs")
+    if run_start[0] != 0 or run_start[-1] != n or (r and not (run_start[1:] > run_start[:-1]).all()):
+        raise _bad("run table does not partition the chunks")
     offsets = np.zeros(n, np.uint64)
     np.cumsum(lengths[:-1], out=offsets[1:])
-    run_start, run_weight = take("<u4", r + 1), take("<f8", r)
-    return ShardIndex(tuple(chunks_per_shard), codes, offsets, lengths, run_start, run_weight)
+    index = ShardIndex(tuple(chunks_per_shard), codes, offsets, lengths, run_start, run_weight)
+    if n and (index.coords >= np.asarray(chunks_per_shard)).any():
+        raise _bad("a code lies outside the shard")
+    return index
 
 
 def _split_footer(tail: bytes) -> tuple[int, int]:
     """``(index_nbytes, crc)`` from the last bytes of a shard."""
     if len(tail) < _FOOT.size:
-        raise ValueError(f"not a zarr_octree_sharding shard: {len(tail)} bytes, shorter than its {_FOOT.size}-byte footer")
+        raise ValueError(f"not an octree shard: {len(tail)} bytes, shorter than its {_FOOT.size}-byte footer")
     nbytes, crc, magic = _FOOT.unpack_from(tail, len(tail) - _FOOT.size)
     if magic != FOOTER_MAGIC:
-        raise ValueError("not a zarr_octree_sharding shard (footer magic)")
+        raise ValueError("not an octree shard (footer magic)")
     return nbytes, crc
 
 
-def index_from_shard(buf: bytes, chunks_per_shard: tuple[int, ...]) -> ShardIndex:
-    """The index of a whole shard's bytes."""
+def index_from_shard(buf: bytes, chunks_per_shard: tuple[int, ...], *, whole: bool = True) -> ShardIndex:
+    """The index at the end of ``buf``: a whole shard, or (``whole=False``) any tail of one holding the index."""
     nbytes, crc = _split_footer(buf)
     if nbytes > len(buf) - _FOOT.size:
-        raise ValueError(f"zarr_octree_sharding shard is truncated: its index needs {nbytes + _FOOT.size} bytes, {len(buf)} given")
-    body = buf[len(buf) - _FOOT.size - nbytes : len(buf) - _FOOT.size]
-    if zlib.crc32(body) != crc:
-        raise ValueError("zarr_octree_sharding index checksum mismatch")
-    return decode_index(body, chunks_per_shard)
+        raise ValueError(f"octree shard is truncated: its index needs {nbytes + _FOOT.size} bytes, {len(buf)} given")
+    body = bytes(buf[len(buf) - _FOOT.size - nbytes : len(buf) - _FOOT.size])
+    version = body[4] if len(body) > 4 else INDEX_VERSION
+    if version in READ_VERSIONS and _crc(version, body) != crc:
+        raise ValueError("octree shard index checksum mismatch")
+    index = decode_index(body, chunks_per_shard)
+    data = len(buf) - _FOOT.size - nbytes
+    if whole and int(index.lengths.sum()) != data:
+        raise _bad(f"its chunks hold {int(index.lengths.sum())} bytes, the shard's data region {data}")
+    return index
 
 
 @dataclass(frozen=True)
@@ -236,29 +287,49 @@ class OctreeShardingCodec(ShardingCodec):
 
     # -- metadata ---------------------------------------------------------------
 
+    def layout_dict(self) -> dict[str, Any]:
+        """The writer's layout as metadata: ``{"name": "octree" | "runs", "configuration": {...}}``."""
+        cfg: dict[str, Any] = (
+            {"target": self.target} if self.layout == "octree"
+            else {"min_weight": self.min_weight, "max_weight": self.max_weight}
+        )
+        return {"name": self.layout, "configuration": {**cfg, "unit": self.unit}}
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "name": CODEC_NAME,
             "configuration": {
-                "version": INDEX_VERSION,
                 "chunk_shape": tuple(self.chunk_shape),
                 "codecs": tuple(c.to_dict() for c in self.codecs),
-                "layout": self.layout,
-                **({"target": self.target} if self.layout == "octree"
-                   else {"min_weight": self.min_weight, "max_weight": self.max_weight}),
-                "unit": self.unit,
+                "layout": self.layout_dict(),
             },
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> OctreeShardingCodec:
-        if data.get("name") != CODEC_NAME:
-            raise ValueError(f"expected codec {CODEC_NAME!r}, got {data.get('name')!r}")
+        name = data.get("name")
+        if name != CODEC_NAME and name not in LEGACY_NAMES:
+            raise ValueError(f"expected codec {CODEC_NAME!r}, got {name!r}")
         cfg = dict(data.get("configuration", {}))
-        if cfg.pop("version", INDEX_VERSION) != INDEX_VERSION:
-            raise ValueError("unsupported zarr_octree_sharding version")
-        cfg.setdefault("layout", "runs")  # written before the octree layout existed
-        return cls(**cfg)
+        if name in LEGACY_NAMES:
+            return cls(**_legacy_configuration(cfg))
+        extra = set(cfg) - {"chunk_shape", "codecs", "layout"}
+        if extra:
+            # index_codecs / index_location included: the index format is fixed.
+            raise ValueError(f"unknown octree codec configuration {sorted(extra)}")
+        if "chunk_shape" not in cfg:
+            raise ValueError("octree codec configuration needs chunk_shape")
+        kwargs: dict[str, Any] = {"chunk_shape": cfg["chunk_shape"], "codecs": cfg.get("codecs", ())}
+        layout = cfg.get("layout")
+        if layout is not None:  # writer settings; reading never depends on them
+            if not isinstance(layout, dict) or layout.get("name") not in LAYOUTS:
+                raise ValueError(f"octree layout must be {{'name': one of {LAYOUTS}, 'configuration': ...}}, got {layout!r}")
+            lcfg = dict(layout.get("configuration", {}))
+            allowed = {"target", "unit"} if layout["name"] == "octree" else {"min_weight", "max_weight", "unit"}
+            if set(lcfg) - allowed:
+                raise ValueError(f"unknown {layout['name']!r} layout configuration {sorted(set(lcfg) - allowed)}")
+            kwargs.update(layout=layout["name"], **lcfg)
+        return cls(**kwargs)
 
     def __getstate__(self) -> dict[str, Any]:
         return self.to_dict()
@@ -303,7 +374,7 @@ class OctreeShardingCodec(ShardingCodec):
             if more is None:  # the shard was deleted between the two reads
                 return None
             tail = more.to_bytes()
-        return index_from_shard(tail[len(tail) - need :], chunks_per_shard)
+        return index_from_shard(tail[len(tail) - need :], chunks_per_shard, whole=False)
 
     async def _load_shard_index_maybe(self, byte_getter: Any, chunks_per_shard: tuple[int, ...]) -> _ShardIndex | None:
         index = await self._load_index(byte_getter, chunks_per_shard)
@@ -323,7 +394,7 @@ class OctreeShardingCodec(ShardingCodec):
         return self._reader(buf, chunks_per_shard) if buf else None
 
     def _shard_index_size(self, chunks_per_shard: tuple[int, ...]) -> int:
-        raise NotImplementedError("zarr_octree_sharding indexes have no fixed size")
+        raise NotImplementedError("octree shard indexes have no fixed size")
 
     def compute_encoded_size(self, input_byte_length: int, shard_spec: Any) -> int:
         # Variable: the index grows with the stored chunks.  A lower bound, as zarr only uses it for fixed-size codecs.
@@ -400,9 +471,11 @@ class OctreeShardingCodec(ShardingCodec):
             *(byte_getter.get(prototype=default_buffer_prototype(), byte_range=RangeByteRequest(lo, hi)) for _, lo, hi in spans)
         )
         out = {}
-        for (members, lo, _), buf in zip(spans, bufs):
+        for (members, lo, hi), buf in zip(spans, bufs):
             if buf is None:
                 continue
+            if len(buf) != hi - lo:
+                raise _bad(f"a run's byte range {lo}-{hi} lies past the end of the shard")
             for i in members:
                 s = int(index.offsets[i]) - lo
                 out[coords_of[int(index.codes[i])]] = buf[s : s + int(index.lengths[i])]
@@ -421,7 +494,9 @@ class OctreeShardingCodec(ShardingCodec):
             *(byte_getter.get(prototype=default_buffer_prototype(), byte_range=RangeByteRequest(a, b)) for a, b, _ in spans)
         )
         out = []
-        for r, ((lo, _, _), buf) in enumerate(zip(spans, bufs)):
+        for r, ((lo, hi, _), buf) in enumerate(zip(spans, bufs)):
+            if buf is None or len(buf) != hi - lo:
+                raise _bad(f"run {r}'s byte range {lo}-{hi} lies past the end of the shard")
             cells = {}
             for i in range(int(index.run_start[r]), int(index.run_start[r + 1])):
                 s = int(index.offsets[i]) - lo
@@ -492,7 +567,17 @@ class OctreeShardingCodec(ShardingCodec):
         return template.create_zero_length().combine([*values, template.from_bytes(encode_index(index))])
 
 
+def _legacy_configuration(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Keyword arguments from a ``zarr_octree_sharding`` (zarr-octree <= 0.3) configuration."""
+    if cfg.pop("version", 2) != 2:
+        raise ValueError("unsupported zarr_octree_sharding version")
+    cfg.setdefault("layout", "runs")  # written before the octree layout existed
+    return cfg
+
+
 register_codec(CODEC_NAME, OctreeShardingCodec)
+for _name in LEGACY_NAMES:
+    register_codec(_name, OctreeShardingCodec)
 
 
 # -- for readers that locate chunks themselves ----------------------------------
@@ -513,7 +598,7 @@ def dense_rows(tail: bytes, chunks_per_shard: tuple[int, ...], *, runs: bool = F
     need = index_tail_nbytes(tail)
     if need > len(tail):
         raise ValueError("tail is shorter than the shard's index")
-    index = index_from_shard(tail[len(tail) - need :], chunks_per_shard)
+    index = index_from_shard(tail[len(tail) - need :], chunks_per_shard, whole=False)
     rows = index.dense().offsets_and_lengths.reshape(-1, 2)
     if not runs:
         return rows

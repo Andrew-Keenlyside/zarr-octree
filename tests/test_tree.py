@@ -69,7 +69,9 @@ def test_min_weight_merges_light_neighbours():
     order = np.argsort(codes)
     without = build_runs(codes[order], w[order], 3, 0, 20_000)
     with_min = build_runs(codes[order], w[order], 3, 10_000, 20_000)
-    light = lambda runs: sum(w[order][a:b].sum() < 10_000 for _, a, b in runs)
+    def light(runs):
+        return sum(w[order][a:b].sum() < 10_000 for _, a, b in runs)
+
     assert light(with_min) < light(without)
 
 
