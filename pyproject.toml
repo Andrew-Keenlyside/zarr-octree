@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,11 @@ name = "zarr-octree"
 dynamic = ["version"]
 description = "A Zarr v3 sharding codec: a sparse shard index and inner chunks grouped into octree runs"
 requires-python = ">=3.12"  # zarr 3.2 needs 3.12
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+readme = "README.md"
+authors = [{name = "Andrew Keenlyside"}]
+classifiers = ["Programming Language :: Python :: 3", "Topic :: Scientific/Engineering"]
 dependencies = ["zarr>=3.2", "numpy", "google-crc32c>=1.5"]  # the codec builds on zarr 3.2 sharding internals
 
 [project.entry-points."zarr.codecs"]
@@ -14,7 +19,7 @@ octree = "zarr_octree.codec:OctreeShardingCodec"
 zarr_octree_sharding = "zarr_octree.codec:OctreeShardingCodec"  # stores written by zarr-octree <= 0.3
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "jsonschema"]
 bench = ["matplotlib", "umap-learn", "scikit-learn"]
 
 [tool.setuptools.dynamic]
@@ -22,6 +27,12 @@ version = {attr = "zarr_octree.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.urls]
+Repository = "https://github.com/Andrew-Keenlyside/zarr-octree"
+
+[tool.ruff]
+line-length = 140
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
