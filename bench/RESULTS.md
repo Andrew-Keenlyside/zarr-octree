@@ -11,11 +11,13 @@ codec, which needs no change to zarr; it is in the git history up to commit
 
 ## The codec
 
-`zarr_octree_sharding` replaces `sharding_indexed`, so zarr-python needs no
+`octree` (named `zarr_octree_sharding` before 0.4, when these benchmarks
+were run) replaces `sharding_indexed`, so zarr-python needs no
 change: it finds the codec through the `zarr.codecs` entry point, and a reader
 without it refuses the array (unknown codec).  The array, its shards, inner
 chunks and keys are what `sharding_indexed` gives; only the bytes inside a
-shard differ (format in [`SPEC.md`](../SPEC.md)):
+shard differ (format in
+[`registry/codecs/octree/README.md`](../registry/codecs/octree/README.md)):
 
 * a **sparse index**, one row per stored inner chunk (6 B up to 32³ chunks per
   shard), instead of the dense one (16 B per *possible* inner chunk); a reader

@@ -79,7 +79,7 @@ def index_read_nbytes(chunks_per_shard: tuple[int, ...]) -> int:
     """
     n = int(np.prod(chunks_per_shard))
     row = np.dtype(_code_dtype(len(chunks_per_shard), _bits(chunks_per_shard))).itemsize + 4
-    return max(INDEX_READ_MIN, n * row + (n // 4) * 12 + _HEAD.size + _FOOT.size)
+    return max(INDEX_READ_MIN, n * row + (n // 4) * 12 + 4 + _HEAD.size + _FOOT.size)  # run starts are r + 1 entries
 
 
 @dataclass

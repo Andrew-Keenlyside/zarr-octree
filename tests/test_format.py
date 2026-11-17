@@ -164,3 +164,22 @@ def test_a_store_written_by_zarr_octree_0_3_still_reads():
     old = zarr.open_array(store, path="pts", mode="r")
     assert old.metadata.codecs[0].layout == "runs"
     np.testing.assert_array_equal(old[...], as_object_array(cells))
+
+
+def test_written_metadata_matches_the_registry_schema():
+    jsonschema = pytest.importorskip("jsonschema")
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "registry" / "codecs" / "octree"
+    schema = json.loads((root / "schema.json").read_text())
+    for codec in (
+        OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec(), ZstdCodec()]),
+        OctreeShardingCodec(chunk_shape=(1, 1, 1), codecs=[VLenBytesCodec()], layout="runs", min_weight=5, max_weight=50),
+    ):
+        jsonschema.validate(json.loads(json.dumps(codec.to_dict())), schema)
+    example = json.loads((root / "example.zarr" / "zarr.json").read_text())["codecs"][0]
+    jsonschema.validate(example, schema)
+    for bad in ({"index_location": "end"}, {"layout": {"name": "octree", "configuration": {"max_weight": 1}}}):
+        meta = {"name": "octree", "configuration": {"chunk_shape": [2], "codecs": [], **bad}}
+        with pytest.raises(jsonschema.ValidationError):
+            jsonschema.validate(meta, schema)
