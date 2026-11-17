@@ -7,7 +7,7 @@ name = "zarr-octree"
 dynamic = ["version"]
 description = "A Zarr v3 sharding codec: a sparse shard index and inner chunks grouped into octree runs"
 requires-python = ">=3.12"  # zarr 3.2 needs 3.12
-license = "BSD-3-Clause"
+license = "MIT"
 license-files = ["LICENSE"]
 readme = "README.md"
 authors = [{name = "Andrew Keenlyside"}]
