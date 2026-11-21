@@ -119,7 +119,7 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
     write_cells(sharded(store, lo=10, hi=20), {(0, 0, 0): b"x"})
     meta = json.loads(sync(store.get("pts/zarr.json", default_buffer_prototype())).to_bytes())
     codec = meta["codecs"][0]
-    assert codec["name"] == "octree"
+    assert codec["name"] == "octree_sharding"
     assert codec["configuration"]["layout"] == {"name": "runs", "configuration": {"min_weight": 10, "max_weight": 20, "unit": "bytes"}}
     # A fresh interpreter that has not imported zarr_octree (and has no entry point for it).
     code = (
@@ -132,7 +132,7 @@ def test_metadata_names_the_codec_and_a_reader_without_it_refuses():
         "try:\n    zarr.open_array(s, path='a', mode='r')\nexcept Exception as e:\n    print('refused', type(e).__name__)\n"
         "else:\n    print('opened')\n"
     )
-    probe = "import importlib.metadata as md; print(any(e.name in ('octree', 'zarr_octree_sharding') for e in md.entry_points(group='zarr.codecs')))"
+    probe = "import importlib.metadata as md; print(any(e.name in ('octree_sharding', 'zarr_octree_sharding') for e in md.entry_points(group='zarr.codecs')))"
     if subprocess.run([sys.executable, "-I", "-c", probe], capture_output=True, text=True, check=False).stdout.strip() == "True":
         pytest.skip("zarr_octree is installed with its entry point in this environment; zarr would load it")
     r = subprocess.run([sys.executable, "-I", "-c", code], input=json.dumps(meta), capture_output=True, text=True, check=False)

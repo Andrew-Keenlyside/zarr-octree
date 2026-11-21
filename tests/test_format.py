@@ -100,14 +100,14 @@ def test_an_unknown_index_version_is_refused():
 
 
 def test_both_names_are_registered_with_zarr():
-    assert get_codec_class("octree") is OctreeShardingCodec
+    assert get_codec_class("octree_sharding") is OctreeShardingCodec
     assert get_codec_class("zarr_octree_sharding") is OctreeShardingCodec
 
 
 def test_written_metadata_has_the_registered_name_and_form():
     c = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], target=500)
     assert c.to_dict() == {
-        "name": "octree",
+        "name": "octree_sharding",
         "configuration": {
             "chunk_shape": (2, 2),
             "codecs": (BytesCodec().to_dict(),),
@@ -117,7 +117,7 @@ def test_written_metadata_has_the_registered_name_and_form():
 
 
 def test_layout_is_optional():
-    c = OctreeShardingCodec.from_dict({"name": "octree", "configuration": {"chunk_shape": [2, 2], "codecs": [BytesCodec().to_dict()]}})
+    c = OctreeShardingCodec.from_dict({"name": "octree_sharding", "configuration": {"chunk_shape": [2, 2], "codecs": [BytesCodec().to_dict()]}})
     assert (c.layout, c.target) == ("octree", 100_000)
 
 
@@ -135,7 +135,7 @@ def test_layout_is_optional():
 def test_metadata_the_format_does_not_define_is_refused(configuration, why):
     cfg = {"chunk_shape": [2, 2], "codecs": [BytesCodec().to_dict()], **configuration}
     with pytest.raises(ValueError, match=why):
-        OctreeShardingCodec.from_dict({"name": "octree", "configuration": cfg})
+        OctreeShardingCodec.from_dict({"name": "octree_sharding", "configuration": cfg})
 
 
 def test_a_store_written_by_zarr_octree_0_3_still_reads():
@@ -169,7 +169,7 @@ def test_written_metadata_matches_the_registry_schema():
     jsonschema = pytest.importorskip("jsonschema")
     from pathlib import Path
 
-    root = Path(__file__).resolve().parents[1] / "registry" / "codecs" / "octree"
+    root = Path(__file__).resolve().parents[1] / "registry" / "codecs" / "octree_sharding"
     schema = json.loads((root / "schema.json").read_text())
     for codec in (
         OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec(), ZstdCodec()]),
@@ -179,6 +179,36 @@ def test_written_metadata_matches_the_registry_schema():
     example = json.loads((root / "example.zarr" / "zarr.json").read_text())["codecs"][0]
     jsonschema.validate(example, schema)
     for bad in ({"index_location": "end"}, {"layout": {"name": "octree", "configuration": {"max_weight": 1}}}):
-        meta = {"name": "octree", "configuration": {"chunk_shape": [2], "codecs": [], **bad}}
+        meta = {"name": "octree_sharding", "configuration": {"chunk_shape": [2], "codecs": [], **bad}}
         with pytest.raises(jsonschema.ValidationError):
             jsonschema.validate(meta, schema)
+
+
+def test_an_empty_index_reads_as_the_fill_value():
+    """A shard object with m = 0, r = 0 (index and footer only) is valid and holds nothing."""
+    store = MemoryStore()
+    arr = zarr.create_array(store, name="a", shape=(4, 4), chunks=(4, 4), serializer=OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()]),
+                            compressors=None, dtype="uint8", fill_value=7)
+    empty = _index([], [], [0], cps=(2, 2))
+    assert index_from_shard(encode_index(empty), (2, 2)).codes.tolist() == []
+    sync(store.set("a/c/0/0", default_buffer_prototype().buffer.from_bytes(encode_index(empty))))
+    assert (arr[...] == 7).all()
+
+
+def test_run_weights_are_not_checked():
+    ix = _index([0, 1], [4, 4], [0, 2])
+    ix.run_weight[:] = np.nan
+    assert index_from_shard(_shard(ix), CPS).codes.tolist() == [0, 1]
+
+
+def test_zarr_can_rebuild_the_codec_with_dataclasses_replace():
+    """zarr's evolve_from_array_spec calls dataclasses.replace, passing every ShardingCodec field."""
+    import dataclasses
+    import pickle
+
+    c = OctreeShardingCodec(chunk_shape=(2, 2), codecs=[BytesCodec()], layout="runs", min_weight=1, max_weight=9)
+    d = dataclasses.replace(c, codecs=(BytesCodec(endian="big"),))
+    assert (d.layout, d.min_weight, d.max_weight) == ("runs", 1, 9) and d.codecs[0].to_dict()["configuration"]["endian"] == "big"
+    assert pickle.loads(pickle.dumps(c)) == c
+    with pytest.raises(TypeError, match="unexpected"):
+        OctreeShardingCodec(chunk_shape=(2, 2), not_a_field=1)

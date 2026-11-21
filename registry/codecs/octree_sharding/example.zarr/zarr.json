@@ -24,7 +24,7 @@
   "fill_value": 0,
   "codecs": [
     {
-      "name": "octree",
+      "name": "octree_sharding",
       "configuration": {
         "chunk_shape": [
           2,

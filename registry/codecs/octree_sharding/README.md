@@ -1,4 +1,4 @@
-# Octree codec
+# Octree sharding codec
 
 Defines an `array -> bytes` codec that shards an array like
 [`sharding_indexed`](../sharding_indexed/): each shard is one stored object
@@ -14,7 +14,9 @@ what they mean with `sharding_indexed`.  Only the bytes of a shard differ:
 
 The codec is meant for sparse, spatially clustered data such as point clouds,
 meshes and skeletons binned into a grid, where most inner chunks of a shard
-are empty and occupied ones vary widely in size.
+are empty and occupied ones vary widely in size.  It is named for its main use,
+three-dimensional data, but is defined for any number of dimensions (in two it
+is a quadtree).
 
 ## Motivation
 
@@ -23,7 +25,7 @@ are empty and occupied ones vary widely in size.
 `sharding_indexed` stores a dense index of 16 bytes per *possible* inner
 chunk.  For a sparse array that index can be larger than the data: a shard of
 16³ inner chunks carries a 64 KiB index however few chunks it holds.  The
-`octree` codec's index costs 6 bytes per *stored* chunk (for shards of up to
+`octree_sharding` index costs 6 bytes per *stored* chunk (for shards of up to
 32³ inner chunks) and nothing for absent ones.
 
 The run table records a grouping of the chunks that the writer chose, such as
@@ -37,7 +39,7 @@ inner chunk per cell (the points' float32 coordinates, zstd), sharded 16³
 cells per shard, and read through zarr-python 3.4.2 behind a store with 20 ms
 latency and 100 MB/s per request:
 
-| | `sharding_indexed` | `sharding_indexed`, chunks in Z-order | `octree` |
+| | `sharding_indexed` | `sharding_indexed`, chunks in Z-order | `octree_sharding` |
 | - | - | - | - |
 | store size | 64.0 MB | 64.0 MB | 33.1 MB |
 | of which index | 33.6 MB (64 KiB a shard) | 33.6 MB | 2.7 MB (5.1 KiB a shard) |
@@ -56,6 +58,50 @@ its index size, and runs as units for consumers that want them, not query
 speed.  The benchmark is `bench/bench_registry.py` in the implementation's
 repository.
 
+## Alternatives considered
+
+*This section is non-normative.*
+
+**Compressing `sharding_indexed`'s index.**  A sparse shard's dense index is
+mostly the `0xFFFFFFFFFFFFFFFF` marker of absent chunks and would compress to
+almost nothing.  The `sharding_indexed` specification rules this out: codecs
+"that produce variable-sized encoded representation, such as compression
+codecs, MUST NOT be used for index codecs", because a reader locates the index
+by its fixed size.  A sparse index needs a variable size, and so a footer that
+records it, which `sharding_indexed` has no place for.
+
+**Storing `sharding_indexed`'s chunks in Z-order.**  Allowed already (the
+specification leaves the order to the writer), but the index stays dense and
+cannot record runs.  The benchmark above shows it changes nothing when read
+through zarr-python.
+
+**A new index format for `sharding_indexed`.**  This codec could become a
+sparse-index option of a future version of the sharding specification.  It is
+registered as its own codec so that it can be used now; its metadata is that
+of `sharding_indexed` less the two index fields, so folding it in later would
+be straightforward.
+
+**Compared with `sharding_indexed`:**
+
+| | `sharding_indexed` | `octree_sharding` |
+| - | - | - |
+| inner chunks, inner codecs, chunk keys, fill value | | the same |
+| index rows | one per possible inner chunk (absent ones marked) | one per stored inner chunk |
+| index row | offset and length, 16 bytes | Z-order code and length, 6 bytes for shards of up to 32³ inner chunks |
+| index size | fixed: 16 bytes × possible chunks, + 4 | `36 + (c + w)·m + 12·r` bytes, with the footer |
+| chunk order | any; gaps allowed | increasing Z-order, contiguous, no gaps (so offsets are implied) |
+| locating the index | fixed size, at the start or end | a fixed 16-byte footer gives its size |
+| index encoding | `index_codecs`, fixed-size only | fixed by this specification, CRC-32C checksum |
+| grouping of chunks | none | runs, with a weight each |
+| replacing one inner chunk | may rewrite it in place | rewrites the shard |
+
+**Sparse volumetric formats inside a chunk** (for example a
+[NanoVDB codec](https://github.com/zarr-developers/zarr-extensions/pull/73))
+encode a sparse block's *values* in one chunk with a tree of their own.  This
+codec changes only how a shard finds its inner chunks; what an inner chunk
+holds, and how it is encoded, is left to the inner codecs.  The two can be
+combined.
+
 ## Codec metadata
 
 | Field | Type | Required |
@@ -65,7 +111,7 @@ repository.
 
 ### Name
 
-The value of the `name` field MUST be the string `"octree"`.
+The value of the `name` field MUST be the string `"octree_sharding"`.
 
 ### Configuration
 
@@ -116,7 +162,11 @@ group runs as it likes.
 - **chunks per shard** `s = (s_0, …, s_{n-1})`: the shard shape divided by
   `chunk_shape`, where `n` is the number of dimensions.
 - **bits** `b = max(1, bit_length(max(s) − 1))`: a shard is addressed as a
-  block of `2^b` inner chunks along every axis.  `n · b` MUST NOT exceed 64.
+  block of `2^b` inner chunks along every axis.  `n · b` MUST NOT exceed 64,
+  and `n` MUST NOT exceed 255.  Chunks per shard need not be powers of two or
+  equal along every axis: the block then extends past the shard, and codes of
+  positions outside it never occur.  For example, `s = (3, 3, 3)` gives
+  `b = 2`, and a code whose coordinate is 3 on any axis is invalid.
 - **code**: an inner chunk's Morton (Z-order) code within its shard.  Bit `j`
   of the chunk's coordinate along axis `a` (counting from 0, the least
   significant bit) is bit `j · n + (n − 1 − a)` of the code, so axis 0 is the
@@ -136,8 +186,10 @@ All integers and floats are little endian.  A shard object is:
 ```
 
 **Inner chunks.**  Every stored inner chunk's encoded bytes, in increasing code
-order, contiguous from byte 0.  Offsets are not stored: chunk `i` starts at the
-sum of the lengths of the chunks before it.
+order, contiguous from byte 0, with no bytes between chunks and none between
+the last chunk and the index.  Offsets are not stored: chunk `i` starts at the
+sum of the lengths of the chunks before it.  At most `2³² − 1` chunks are
+stored in a shard.
 
 **Index.**
 
@@ -166,7 +218,16 @@ A writer SHOULD use `w = 4` unless a chunk's encoded length is at least 2³².
 | magic | 4 bytes, `ZOSF` |
 
 An inner chunk with no row is absent, and reads as the fill value.  A shard
-with no stored chunk has no object.
+with no stored chunk SHOULD have no object (and then reads as the fill value,
+as for any missing shard).  A reader MUST accept a shard object with `m = 0`
+and `r = 0` (an index and footer only) and read it as the fill value.
+
+Run weights carry no meaning for reading: a reader MUST NOT reject a shard for
+its weights' values (including NaN or infinity), and MAY ignore them.
+
+**Versions.**  This document defines index version 3.  A reader MUST reject an
+index whose version it does not support.  A change to the index layout takes a
+new version number and an entry in the [change log](#change-log).
 
 ## Reading
 
@@ -238,7 +299,7 @@ chunks stored and runs aimed at 8 bytes:
 
 ```json
 {
-  "name": "octree",
+  "name": "octree_sharding",
   "configuration": {
     "chunk_shape": [2, 2, 2],
     "codecs": [{ "name": "bytes" }],
@@ -270,7 +331,7 @@ The shard `c/0/0/0`, 114 bytes:
 ```
 
 The array is in the implementation's repository as
-[`registry/codecs/octree/example.zarr`](https://github.com/Andrew-Keenlyside/zarr-octree/tree/main/registry/codecs/octree/example.zarr),
+[`registry/codecs/octree_sharding/example.zarr`](https://github.com/Andrew-Keenlyside/zarr-octree/tree/main/registry/codecs/octree_sharding/example.zarr),
 written by `registry/make_example.py`.
 
 ## Interoperability
